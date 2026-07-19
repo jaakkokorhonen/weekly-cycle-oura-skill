@@ -188,7 +188,7 @@ Ouran oma logiikka on hyödyllinen fysiologisen tilan mittaamisessa, mutta täh�
 2. **Yhden työjakson logiikka**: Oura ei mallinna työn rakennetta, mutta tämän skillin keskeinen hypoteesi perustuu siihen, että yksi selkeä työjakso voi olla fysiologisesti ja käytännöllisesti realistisempi kuin useat intensiiviset blokit.
 3. **Kahden unen mahdollisuus**: Oura tulkitsee väliheräämisen lähinnä katkoksena; tämä skill sallii sen hypoteesin, että joissain tilanteissa yö jakautuu tarkoituksellisesti kahteen toimivaan unijaksoon.
 4. **Tavoitefunktion eriyttäminen**: Oura implikoi usein, että optimaalinen uni on paras päämäärä. Tämä skill erottaa tavoitefunktion datasta: joskus viikon tavoite voi olla suorituskyvyn, sosiaalisuuden tai rajojen kokeilun mahdollistaminen, jolloin palautumishintaa ei automaattisesti tulkita epäonnistumiseksi.
-5. **N-of-1-kokeilun hallinta**: Skill lukitsee muut muuttujat ja testaa yhtä asiaa kerrallaan, mikä tuo järjestelmällisyyttä sellaiseen itseseurantaan, joka muuten jäisi anekdoottiseksi.
+5. **N-of-1-kokeilun hallinta (yksinkertaistettu MVP-tasolla)**: MVP-vaiheessa kokeilujaksoja vertaillaan suoraan CLI-analyysityökalulla annettujen päivämäärävälien perusteella. Muuttujien lukitus ja kokeilun käytännön noudattaminen jätetään käyttäjän manuaalisesti hallinnoitavaksi, ja monimutkaisempi automaattinen tilakoneellinen orkestroija on siirretty post-MVP-vaiheeseen.
 
 ## Käyttötapaukset
 
