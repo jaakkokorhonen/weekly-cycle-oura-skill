@@ -1,0 +1,6 @@
+pytest>=8.0
+responses>=0.25
+requests>=2.31
+click>=8.1
+rich>=13.7
+python-dotenv>=1.0
