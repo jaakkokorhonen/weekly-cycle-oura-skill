@@ -14,10 +14,13 @@ pip install -r requirements.txt  # kun requirements.txt on luotu
 
 ```
 weekly-cycle-oura-skill/
-├── README.md                 # Yleiskuvaus ja käyttöönotto
+├── README.md                 # Yleiskuvaus, käyttöönotto ja OURA_TOKEN-ohje
 ├── design.md                 # Arkkitehtuuri ja suunnittelupäätökset
-├── oura-api-decisions.md     # Oura API v2 -selvitysten ratkaisut
+├── oura-api-decisions.md     # Oura API v2 -selvitysten ratkaisut (tikettien #14–#21 päätökset)
 ├── CONTRIBUTING.md           # Tämä tiedosto
+├── index.html                # GitHub Pages -etusivu (redirect → architecture.html)
+├── architecture.html         # Interaktiivinen pipeline-dokumentti (tulossa)
+├── LICENSE
 └── src/                      # Tulossa: oura_client.py, pipeline.py jne.
 ```
 
