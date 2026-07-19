@@ -3,13 +3,15 @@
 Ref: oura-api-decisions.md (#14, #15, #16, #17, #19, #20, #21)
 Ref: design.md §1 MVP-architecture
 Ref: issue #26
+
+Tallennusvastuu: tämä moduuli EI kirjoita data/-kansioon.
+fetch_range() palauttaa raakadatan pipeline.py:lle, joka persistoi sen
+ennen rikastusvaihetta (data/raw_inputs/YYYY-MM-DD.json).
 """
 from __future__ import annotations
 
-import json
 import logging
 from datetime import date, timedelta
-from pathlib import Path
 from typing import Any
 
 import requests
@@ -23,7 +25,7 @@ MVP_ENDPOINTS: list[tuple[str, str]] = [
     ("sleep", "/v2/usercollection/sleep"),
     ("daily_readiness", "/v2/usercollection/daily_readiness"),
     ("daily_activity", "/v2/usercollection/daily_activity"),
-    # heartrate endpoint reserved for post-MVP
+    ("heartrate", "/v2/usercollection/heartrate"),  # MVP: lepotilojen tunnistus (source == 'rest')
 ]
 
 
@@ -34,18 +36,27 @@ class OuraClientError(Exception):
 class OuraClient:
     """Fetches Oura API v2 data for a date range.
 
+    Pure I/O layer — no file writes, no business logic.
+
     Usage::
 
-        client = OuraClient(token="...", raw_dir=Path("data/raw_inputs"))
+        client = OuraClient(token="...")
         records = client.fetch_range("2026-06-19", "2026-07-19")
-        # returns: dict[date_str, {"sleep": [...], "daily_readiness": {...}, "daily_activity": {...}}]
+        # returns: dict[date_str, {
+        #   "sleep": list,
+        #   "daily_readiness": dict | None,
+        #   "daily_activity": dict | None,
+        #   "heartrate": list,
+        # }]
+
+    Caller (pipeline.py) is responsible for persisting raw data and
+    all subsequent enrichment steps.
     """
 
-    def __init__(self, token: str, raw_dir: Path | None = None) -> None:
+    def __init__(self, token: str) -> None:
         if not token:
             raise OuraClientError("OURA_TOKEN is empty — set it in config.yaml or env")
         self._token = token
-        self._raw_dir = raw_dir or Path("data/raw_inputs")
         self._session = requests.Session()
         self._session.headers.update(
             {"Authorization": f"Bearer {token}", "Accept": "application/json"}
@@ -61,32 +72,43 @@ class OuraClient:
         """Fetch all MVP endpoints for [start_date, end_date] inclusive.
 
         Returns a dict keyed by date string (YYYY-MM-DD). Each value is a
-        dict with keys "sleep" (list), "daily_readiness" (dict | None),
-        "daily_activity" (dict | None).
+        dict with keys:
+          "sleep"           — list (long_sleep, short_sleep, rest/nap items)
+          "daily_readiness" — dict | None
+          "daily_activity"  — dict | None
+          "heartrate"       — list (all HR samples for the day)
 
         sleep items include long_sleep (night), short_sleep and rest (naps).
-        Callers (pipeline.py) are responsible for separating them by type.
+        heartrate items with source == 'rest' can be used to detect naps.
+        pipeline.py is responsible for separating and persisting all data.
         """
         log.info("fetch_range %s .. %s", start_date, end_date)
-        raw: dict[str, dict[str, list[Any]]] = {}
+        raw: dict[str, dict[str, Any]] = {}
 
         for key, path in MVP_ENDPOINTS:
             items = self._fetch_paginated(path, start_date, end_date)
             for item in items:
-                # sleep items are keyed by day derived from bedtime_start
-                # readiness/activity items have a 'day' field directly
                 day = self._extract_day(key, item)
                 if day is None:
                     continue
-                bucket = raw.setdefault(day, {"sleep": [], "daily_readiness": None, "daily_activity": None})
+                bucket = raw.setdefault(
+                    day,
+                    {
+                        "sleep": [],
+                        "daily_readiness": None,
+                        "daily_activity": None,
+                        "heartrate": [],
+                    },
+                )
                 if key == "sleep":
                     bucket["sleep"].append(item)
                 elif key == "daily_readiness":
                     bucket["daily_readiness"] = item
                 elif key == "daily_activity":
                     bucket["daily_activity"] = item
+                elif key == "heartrate":
+                    bucket["heartrate"].append(item)
 
-        self._write_raw(raw)
         return raw
 
     def fetch_baseline_range(self, days: int = 30) -> dict[str, dict[str, Any]]:
@@ -115,7 +137,6 @@ class OuraClient:
             next_token = response.get("next_token")
             if not next_token:
                 break
-            # Replace start_date with cursor for subsequent pages
             params = {"next_token": next_token}
             log.debug("%s: fetched %d items, following next_token", path, len(data))
 
@@ -154,45 +175,17 @@ class OuraClient:
     def _extract_day(endpoint_key: str, item: dict[str, Any]) -> str | None:
         """Extract the canonical YYYY-MM-DD date from an API item."""
         if endpoint_key == "sleep":
-            # bedtime_start is ISO 8601 with tz offset — take date part only
             bedtime_start: str | None = item.get("bedtime_start")
             if not bedtime_start:
                 return None
-            # ISO 8601: '2026-07-18T22:30:00+03:00' or '2026-07-18T22:30:00Z'
-            # We want the *local* date of when the person went to bed.
-            # pipeline.py handles full tz conversion; here we use date prefix.
+            # ISO 8601: '2026-07-18T22:30:00+03:00' — take date prefix.
+            # pipeline.py handles full tz conversion.
             return bedtime_start[:10]
+        if endpoint_key == "heartrate":
+            # heartrate items have a 'timestamp' field: '2026-07-18T06:00:00+03:00'
+            timestamp: str | None = item.get("timestamp")
+            if not timestamp:
+                return None
+            return timestamp[:10]
         # daily_readiness and daily_activity have a plain 'day' field
         return item.get("day")
-
-    def _write_raw(
-        self, data: dict[str, dict[str, Any]]
-    ) -> None:
-        """Persist raw API responses to data/raw_inputs/YYYY-MM-DD.json.
-
-        Does NOT overwrite an existing file — new data is merged at the
-        endpoint key level so incremental runs preserve previous content.
-        """
-        self._raw_dir.mkdir(parents=True, exist_ok=True)
-        for day, payload in data.items():
-            path = self._raw_dir / f"{day}.json"
-            if path.exists():
-                try:
-                    existing = json.loads(path.read_text(encoding="utf-8"))
-                    # Merge: append new sleep items, overwrite scalars
-                    existing_sleep: list = existing.get("sleep", [])
-                    new_sleep: list = payload.get("sleep", [])
-                    merged_sleep = existing_sleep + [
-                        s for s in new_sleep
-                        if s.get("id") not in {e.get("id") for e in existing_sleep}
-                    ]
-                    merged = {**existing, **payload, "sleep": merged_sleep}
-                except (json.JSONDecodeError, TypeError):
-                    merged = payload
-            else:
-                merged = payload
-
-            tmp = path.with_suffix(".tmp")
-            tmp.write_text(json.dumps(merged, ensure_ascii=False, indent=2), encoding="utf-8")
-            tmp.replace(path)  # atomic rename
-        log.info("Wrote raw_inputs for %d day(s)", len(data))
