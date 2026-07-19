@@ -4,7 +4,7 @@
 
 Skill on Python-pohjainen analyysikerros, joka lukee Oura API v2:sta fysiologisen datan, rikastaa sen johdetuilla muuttujilla, luokittelee päivän ja tuottaa lyhyen taktisen suositustekstin. Järjestelmä altistaa toimintansa MCP-protokollan kautta AI-assistenteille (Antigravity, Perplexity).
 
-Katso taustat ja tavoitteet: [DESIGN.md](DESIGN.md) — Oura API -kenttävalinnat: [oura-api-decisions.md](oura-api-decisions.md)
+Katso taustat ja tavoitteet: [DESIGN.md](DESIGN.md) — Oura API -kenttävalinnat: [OURA-API-DECISIONS.md](OURA-API-DECISIONS.md)
 
 ```
 ┌────────────────────────────────────────────────────────┐
@@ -267,7 +267,7 @@ weekly-cycle-oura-skill/
 ├── CONTRIBUTING.md
 ├── ARCHITECTURE.md         # tämä tiedosto
 ├── DESIGN.md
-├── oura-api-decisions.md
+├── OURA-API-DECISIONS.md
 ├── src/
 │   ├── oura_client.py
 │   ├── event_manager.py
