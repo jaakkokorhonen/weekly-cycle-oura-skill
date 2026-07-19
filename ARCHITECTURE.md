@@ -4,7 +4,7 @@
 
 Skill on Python-pohjainen analyysikerros, joka lukee Oura API v2:sta fysiologisen datan, rikastaa sen johdetuilla muuttujilla, luokittelee päivän ja tuottaa lyhyen taktisen suositustekstin. Järjestelmä altistaa toimintansa MCP-protokollan kautta AI-assistenteille (Antigravity, Perplexity).
 
-Katso taustat ja tavoitteet: [DESIGN.md](DESIGN.md) — Oura API -kenttävalinnat: [OURA-API-DECISIONS.md](OURA-API-DECISIONS.md)
+Katso taustat ja tavoitteet: [DESIGN.md](DESIGN.md) — Oura API -kenttävalinnat: [oura-api-decisions.md](oura-api-decisions.md)
 
 ```
 ┌────────────────────────────────────────────────────────┐
@@ -59,6 +59,7 @@ Puhdas I/O-rajapinta ilman sivuvaikutuksia. Hakee MVP-endpointit ja hallinnoi pa
 - `/v2/usercollection/daily_readiness`
 - `/v2/usercollection/daily_activity`
 - `/v2/usercollection/heartrate` — nap-tunnistus (`source == 'rest'`)
+- `/v2/usercollection/tag` — manuaalitapahtumat (kofeiini, alkoholi, ateria, nap)
 
 **Tärkeää:**
 - Ei kirjoita `data/`-kansioon — kirjoitusvastuu on `pipeline.py`:llä
@@ -91,7 +92,7 @@ Laskee kaikki `derived`-nimiavaruuden muuttujat Oura-raakadatasta ja event_manag
 
 **Nimiavaruudet:**
 - `derived.*` — skillin laskema (esim. `hrv_delta_pct`, `caffeine_sleep_gap`)
-- `oura.*` — Ouran natiivit scorerit (esim. `readiness_score`)
+- `oura.*` — Ouran natiivit scorerit (esim. `readiness_score`, `recovery_index`)
 - `raw.*` — kaikki muut API-kentät
 
 Katso täydellinen feature-schema: [tiketti #2](https://github.com/jaakkokorhonen/weekly-cycle-oura-skill/issues/2).
@@ -169,9 +170,22 @@ Yhdistää kaikki moduulit ja kirjoittaa `data/records/YYYY-MM-DD.json`.
 ```json
 {
   "date": "2026-07-18",
-  "raw": {},
-  "derived": {"hrv_delta_pct": -0.08, "caffeine_sleep_gap": 9.5},
-  "oura": {"readiness_score": 74},
+  "raw": {
+    "sleep": {},
+    "readiness": {"score": 78, "temperature_deviation": 0.0},
+    "activity": {"active_calories": 198},
+    "heartrate": []
+  },
+  "derived": {
+    "hrv_delta_pct": -0.08,
+    "caffeine_sleep_gap": 9.5,
+    "recovery_cost": 0.12,
+    "sleep_mode": "monophasic"
+  },
+  "oura": {
+    "readiness_score": 78,
+    "recovery_index": 94
+  },
   "events": [],
   "classification": "BASELINE_DAY",
   "load_state": "Neutral",
@@ -182,13 +196,15 @@ Yhdistää kaikki moduulit ja kirjoittaa `data/records/YYYY-MM-DD.json`.
 }
 ```
 
+**Huomio:** `recovery_index` luetaan `daily_readiness["contributors"]["recovery_index"]`-polusta — ei ylätason kentästä.
+
 **Ensikäynnistys:** Pipeline hakee automaattisesti 30 päivää historiadataa baseline-bootstrappingia varten.
 
 ---
 
 ### `src/mcp_server.py` — MCP-rajapinta
 
-Altistaa skillin toiminnot AI-assistenteille MCP-protokollan kautta. Käyttää `fastmcp`-kirjastoa.
+Altistaa skillin toiminnot AI-assistenteille MCP-protokollan kautta. Käyttää `mcp`-kirjastoa (`mcp>=1.0`).
 
 **MVP-työkalut:**
 
@@ -251,7 +267,7 @@ weekly-cycle-oura-skill/
 ├── CONTRIBUTING.md
 ├── ARCHITECTURE.md         # tämä tiedosto
 ├── DESIGN.md
-├── OURA-API-DECISIONS.md
+├── oura-api-decisions.md
 ├── src/
 │   ├── oura_client.py
 │   ├── event_manager.py
@@ -285,4 +301,4 @@ Seuraavat moduulit on siirretty post-MVP-vaiheeseen:
 - `src/experiment_manager.py` (#31) — N-of-1-kokeilujen orkestroija
 - `segment_sleep_night()` — täysi bifaasinen unisegmentointi
 - `detect_work_block()` — työjakson tunnistus
-- `analyze_experiment()` MCP-työkalu (#33)
+- `analyze_experiment()` MCP-työkalu — lisätään `mcp_server.py`:hen tiketti #31:n yhteydessä
