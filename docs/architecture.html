@@ -1,1 +1,331 @@
-<!-- architecture.html pushed separately via create_or_update_file due to size -->
+<!DOCTYPE html>
+<html lang="fi" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oura Data Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300..700&family=Inter:wght@300..700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root,[data-theme="light"]{
+  --color-bg:#f7f6f2;--color-surface:#f9f8f5;--color-surface-2:#fbfbf9;
+  --color-surface-offset:#f3f0ec;--color-border:#d4d1ca;--color-divider:#dcd9d5;
+  --color-text:#28251d;--color-text-muted:#7a7974;--color-text-faint:#bab9b4;
+  --color-primary:#01696f;--color-primary-hover:#0c4e54;--color-primary-highlight:#cedcd8;
+  --color-success:#437a22;--color-success-highlight:#d4dfcc;
+  --color-warning:#964219;--color-warning-highlight:#ddcfc6;
+  --color-blue:#006494;--color-blue-highlight:#c6d8e4;
+  --color-purple:#7a39bb;--color-purple-highlight:#dacfde;
+  --color-orange:#da7101;--color-orange-highlight:#e7d7c4;
+  --color-gold:#d19900;--color-gold-highlight:#e9e0c6;
+  --shadow-sm:0 1px 2px oklch(0.2 0.01 80/0.06);
+  --shadow-md:0 4px 12px oklch(0.2 0.01 80/0.10);
+  --shadow-lg:0 12px 32px oklch(0.2 0.01 80/0.14);
+  --radius-sm:0.375rem;--radius-md:0.5rem;--radius-lg:0.75rem;--radius-xl:1rem;
+  --font-body:'Inter',sans-serif;--font-mono:'JetBrains Mono',monospace;
+  --text-xs:clamp(0.75rem,0.7rem + 0.25vw,0.875rem);
+  --text-sm:clamp(0.875rem,0.8rem + 0.35vw,1rem);
+  --text-base:clamp(1rem,0.95rem + 0.25vw,1.125rem);
+  --text-lg:clamp(1.125rem,1rem + 0.75vw,1.5rem);
+  --text-xl:clamp(1.5rem,1.2rem + 1.25vw,2.25rem);
+  --space-1:0.25rem;--space-2:0.5rem;--space-3:0.75rem;--space-4:1rem;
+  --space-5:1.25rem;--space-6:1.5rem;--space-8:2rem;--space-10:2.5rem;
+  --space-12:3rem;--space-16:4rem;
+}
+[data-theme="dark"]{
+  --color-bg:#111110;--color-surface:#1a1918;--color-surface-2:#201f1d;
+  --color-surface-offset:#252422;--color-border:#2e2d2b;--color-divider:#262523;
+  --color-text:#cdccca;--color-text-muted:#797876;--color-text-faint:#4a4948;
+  --color-primary:#4f98a3;--color-primary-hover:#227f8b;--color-primary-highlight:#1e3235;
+  --color-success:#6daa45;--color-success-highlight:#2a3a21;
+  --color-warning:#bb653b;--color-warning-highlight:#3a2820;
+  --color-blue:#5591c7;--color-blue-highlight:#1e2f3e;
+  --color-purple:#a86fdf;--color-purple-highlight:#2d2239;
+  --color-orange:#fdab43;--color-orange-highlight:#3a2a14;
+  --color-gold:#e8af34;--color-gold-highlight:#342d14;
+  --shadow-sm:0 1px 2px oklch(0 0 0/0.3);
+  --shadow-md:0 4px 12px oklch(0 0 0/0.4);
+  --shadow-lg:0 12px 32px oklch(0 0 0/0.5);
+}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-body);font-size:var(--text-sm);color:var(--color-text);background:var(--color-bg);min-height:100dvh;line-height:1.5}
+button{cursor:pointer;background:none;border:none;font:inherit;color:inherit}
+a{color:var(--color-primary);text-decoration:none}
+a:hover{text-decoration:underline}
+.page-wrap{max-width:1280px;margin-inline:auto;padding:var(--space-8) var(--space-6)}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-10);padding-bottom:var(--space-6);border-bottom:1px solid var(--color-divider)}
+.logo{display:flex;align-items:center;gap:var(--space-3)}
+.logo-icon{width:36px;height:36px;flex-shrink:0}
+.logo-text{font-size:var(--text-base);font-weight:600;letter-spacing:-0.02em}
+.logo-sub{font-size:var(--text-xs);color:var(--color-text-muted)}
+.header-actions{display:flex;align-items:center;gap:var(--space-3)}
+.btn-icon{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:var(--radius-md);color:var(--color-text-muted);border:1px solid var(--color-border);transition:all 180ms ease}
+.btn-icon:hover{color:var(--color-text);background:var(--color-surface)}
+.tag{display:inline-flex;align-items:center;gap:var(--space-1);padding:2px var(--space-2);border-radius:var(--radius-sm);font-size:var(--text-xs);font-weight:500;font-family:var(--font-mono);background:var(--color-surface-offset);color:var(--color-text-muted);border:1px solid var(--color-border)}
+.section-header{display:flex;align-items:baseline;gap:var(--space-3);margin-bottom:var(--space-5)}
+.section-title{font-size:var(--text-xs);font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--color-text-muted);font-family:var(--font-mono)}
+.section-line{flex:1;height:1px;background:var(--color-divider)}
+.arch-grid{display:grid;grid-template-columns:1fr 56px 1fr 56px 1fr 56px 1fr;gap:0;align-items:start;margin-bottom:var(--space-12)}
+.layer{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-xl);padding:var(--space-5);box-shadow:var(--shadow-sm);transition:box-shadow 180ms ease,border-color 180ms ease;cursor:default}
+.layer:hover{box-shadow:var(--shadow-md)}
+.layer-header{display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-4);padding-bottom:var(--space-3);border-bottom:1px solid var(--color-divider)}
+.layer-icon{width:28px;height:28px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.layer-name{font-size:var(--text-xs);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--color-text-muted);font-family:var(--font-mono)}
+.layer-ingestion .layer-icon{background:var(--color-blue-highlight);color:var(--color-blue)}
+.layer-ingestion{border-color:color-mix(in oklch,var(--color-blue) 20%,var(--color-border))}
+.layer-normalize .layer-icon{background:var(--color-warning-highlight);color:var(--color-warning)}
+.layer-normalize{border-color:color-mix(in oklch,var(--color-warning) 20%,var(--color-border))}
+.layer-features .layer-icon{background:var(--color-purple-highlight);color:var(--color-purple)}
+.layer-features{border-color:color-mix(in oklch,var(--color-purple) 20%,var(--color-border))}
+.layer-output .layer-icon{background:var(--color-success-highlight);color:var(--color-success)}
+.layer-output{border-color:color-mix(in oklch,var(--color-success) 20%,var(--color-border))}
+.module-list{display:flex;flex-direction:column;gap:var(--space-2)}
+.module{background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-2) var(--space-3);font-size:var(--text-xs);transition:all 180ms ease}
+.module:hover{border-color:var(--color-primary);background:color-mix(in oklch,var(--color-primary) 5%,var(--color-surface-2))}
+.module-name{font-weight:600;font-family:var(--font-mono);color:var(--color-text);margin-bottom:2px}
+.module-desc{color:var(--color-text-muted);font-size:10px;line-height:1.4}
+.arrow-col{display:flex;align-items:center;justify-content:center;padding-top:72px}
+.arrow{display:flex;flex-direction:column;align-items:center;gap:var(--space-1)}
+.arrow-line{width:2px;height:40px;background:linear-gradient(180deg,var(--color-divider),var(--color-primary))}
+.arrow-head{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:8px solid var(--color-primary)}
+.arrow-label{font-size:9px;font-family:var(--font-mono);color:var(--color-text-faint);text-align:center;writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:0.05em}
+.flow-detail{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-6);margin-bottom:var(--space-12)}
+.flow-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-xl);padding:var(--space-6);box-shadow:var(--shadow-sm)}
+.flow-card-title{font-size:var(--text-sm);font-weight:600;margin-bottom:var(--space-4);display:flex;align-items:center;gap:var(--space-2)}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pipeline-steps{display:flex;flex-direction:column;gap:var(--space-2)}
+.step{display:flex;align-items:flex-start;gap:var(--space-3);padding:var(--space-3);border-radius:var(--radius-md);border:1px solid var(--color-border);background:var(--color-surface-2)}
+.step-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:var(--font-mono);flex-shrink:0;margin-top:1px}
+.step-label{font-size:var(--text-xs);font-weight:600;font-family:var(--font-mono);color:var(--color-text);margin-bottom:2px}
+.step-detail{font-size:10px;color:var(--color-text-muted);line-height:1.5}
+.step-connector{width:1px;height:var(--space-2);background:var(--color-divider);margin-left:44px}
+.code-block{background:var(--color-surface-offset);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-4);font-family:var(--font-mono);font-size:10px;line-height:1.7;overflow-x:auto}
+.code-comment{color:var(--color-text-faint)}
+.code-key{color:var(--color-blue)}
+.code-val{color:var(--color-primary)}
+.code-str{color:var(--color-orange)}
+.code-section{color:var(--color-gold);font-weight:600}
+.signal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4);margin-bottom:var(--space-12)}
+.signal-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-xl);padding:var(--space-5);box-shadow:var(--shadow-sm)}
+.signal-label{font-size:9px;font-family:var(--font-mono);font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:var(--space-3);padding-bottom:var(--space-2);border-bottom:1px solid var(--color-divider)}
+.signal-metrics{display:flex;flex-direction:column;gap:var(--space-2)}
+.metric-row{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3);border-radius:var(--radius-md);background:var(--color-surface-2);border:1px solid var(--color-border)}
+.metric-name{font-family:var(--font-mono);font-size:10px;font-weight:600;flex:1;color:var(--color-text)}
+.metric-window{font-family:var(--font-mono);font-size:9px;color:var(--color-text-muted);background:var(--color-surface-offset);padding:1px 6px;border-radius:var(--radius-sm);border:1px solid var(--color-border)}
+.decision-table-wrap{overflow-x:auto;margin-bottom:var(--space-12)}
+table{width:100%;border-collapse:collapse;font-size:var(--text-xs)}
+thead th{text-align:left;padding:var(--space-2) var(--space-4);background:var(--color-surface-offset);border-bottom:1px solid var(--color-border);font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--color-text-muted);white-space:nowrap}
+tbody td{padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--color-divider);vertical-align:top;line-height:1.5}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--color-surface-2)}
+.td-module{font-family:var(--font-mono);font-weight:600;color:var(--color-text);font-size:10px;white-space:nowrap}
+.td-issue{font-family:var(--font-mono);font-size:10px}
+.badge{display:inline-flex;align-items:center;padding:1px var(--space-2);border-radius:var(--radius-sm);font-size:9px;font-weight:600;font-family:var(--font-mono);letter-spacing:0.03em;white-space:nowrap}
+.badge-mvp{background:var(--color-success-highlight);color:var(--color-success);border:1px solid color-mix(in oklch,var(--color-success) 25%,transparent)}
+.badge-post{background:var(--color-surface-offset);color:var(--color-text-faint);border:1px solid var(--color-border)}
+footer{padding-top:var(--space-8);border-top:1px solid var(--color-divider);display:flex;align-items:center;justify-content:space-between;font-size:var(--text-xs);color:var(--color-text-faint)}
+@media(max-width:900px){.arch-grid{grid-template-columns:1fr;gap:var(--space-2)}.arrow-col{padding-top:0;height:40px}.flow-detail{grid-template-columns:1fr}.signal-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="page-wrap">
+<header>
+  <div class="logo">
+    <svg class="logo-icon" viewBox="0 0 36 36" fill="none" aria-label="Oura Architecture">
+      <rect width="36" height="36" rx="10" fill="color-mix(in oklch,var(--color-primary) 12%,var(--color-surface))"/>
+      <circle cx="18" cy="13" r="5" stroke="var(--color-primary)" stroke-width="1.5"/>
+      <path d="M10 26c0-4.418 3.582-8 8-8s8 3.582 8 8" stroke="var(--color-primary)" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="18" cy="13" r="2" fill="var(--color-primary)"/>
+    </svg>
+    <div>
+      <div class="logo-text">weekly-cycle-oura-skill</div>
+      <div class="logo-sub">Data Architecture — MVP Scope</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <span class="tag">v1 · MVP</span>
+    <button class="btn-icon" data-theme-toggle aria-label="Vaihda teema">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="section-header"><span class="section-title">Data Pipeline</span><div class="section-line"></div></div>
+
+<div class="arch-grid">
+  <div class="layer layer-ingestion">
+    <div class="layer-header">
+      <div class="layer-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+      <span class="layer-name">1 · Ingest</span>
+    </div>
+    <div class="module-list">
+      <div class="module"><div class="module-name">oura_client.py</div><div class="module-desc">sleep · readiness · activity · heartrate</div></div>
+      <div class="module"><div class="module-name">event_manager.py</div><div class="module-desc">events.jsonl — caffeine · alcohol · meal</div></div>
+      <div class="module"><div class="module-name">data/raw_inputs/</div><div class="module-desc">YYYY-MM-DD.json — cache Oura vastaukset</div></div>
+    </div>
+  </div>
+  <div class="arrow-col"><div class="arrow"><span class="arrow-label">raw JSON</span><div class="arrow-line"></div><div class="arrow-head"></div></div></div>
+  <div class="layer layer-normalize">
+    <div class="layer-header">
+      <div class="layer-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg></div>
+      <span class="layer-name">2 · Normalize</span>
+    </div>
+    <div class="module-list">
+      <div class="module"><div class="module-name">pipeline.py</div><div class="module-desc">ingest → normalize → enrich → write</div></div>
+      <div class="module"><div class="module-name">schema/features.v1.yaml</div><div class="module-desc">Versioned feature definitions + formulas</div></div>
+      <div class="module"><div class="module-name">Timezone guard</div><div class="module-desc">UTC-muunnos (EET/EEST off-by-one)</div></div>
+    </div>
+  </div>
+  <div class="arrow-col"><div class="arrow"><span class="arrow-label">events</span><div class="arrow-line"></div><div class="arrow-head"></div></div></div>
+  <div class="layer layer-features">
+    <div class="layer-header">
+      <div class="layer-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg></div>
+      <span class="layer-name">3 · Features</span>
+    </div>
+    <div class="module-list">
+      <div class="module"><div class="module-name">derived_*</div><div class="module-desc">hrv_delta_pct · active_kcal · rhr_vs_30d · deep_sleep_vs_30d</div></div>
+      <div class="module"><div class="module-name">oura_*</div><div class="module-desc">readiness_score · hrv_balance · resilience_level</div></div>
+      <div class="module"><div class="module-name">data/records/</div><div class="module-desc">YYYY-MM-DD.json {raw + derived + oura}</div></div>
+    </div>
+  </div>
+  <div class="arrow-col"><div class="arrow"><span class="arrow-label">features</span><div class="arrow-line"></div><div class="arrow-head"></div></div></div>
+  <div class="layer layer-output">
+    <div class="layer-header">
+      <div class="layer-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg></div>
+      <span class="layer-name">4 · Classify + Output</span>
+    </div>
+    <div class="module-list">
+      <div class="module"><div class="module-name">rule_engine.py</div><div class="module-desc">HIGH_LOAD | INTEGRATION | BASELINE_DAY</div></div>
+      <div class="module"><div class="module-name">recommendation_engine.py</div><div class="module-desc">Tactical suggestions (non-moral language)</div></div>
+      <div class="module"><div class="module-name">data/runs.jsonl</div><div class="module-desc">A/B run history + feature family used</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="section-header"><span class="section-title">Pipeline Detail</span><div class="section-line"></div></div>
+<div class="flow-detail">
+  <div class="flow-card">
+    <div class="flow-card-title"><div class="dot" style="background:var(--color-primary)"></div>pipeline.py — suoritusjärjestys</div>
+    <div class="pipeline-steps">
+      <div class="step"><div class="step-num" style="background:var(--color-blue-highlight);color:var(--color-blue)">1</div><div><div class="step-label">Fetch</div><div class="step-detail">oura_client.py hakee sleep · readiness · activity · heartrate. Kirjoittaa data/raw_inputs/YYYY-MM-DD.json (cache).</div></div></div>
+      <div class="step-connector"></div>
+      <div class="step"><div class="step-num" style="background:var(--color-warning-highlight);color:var(--color-warning)">2</div><div><div class="step-label">Normalize</div><div class="step-detail">Muunnetaan kaikki aikaleimät UTC+EEST. Yhdistetään events.jsonl-tiedot. Validoidaan skeema (#2).</div></div></div>
+      <div class="step-connector"></div>
+      <div class="step"><div class="step-num" style="background:var(--color-purple-highlight);color:var(--color-purple)">3</div><div><div class="step-label">Compute derived features</div><div class="step-detail">derived_hrv_delta_pct = (nightly_hrv − 14d_median) / 14d_median. derived_rhr_vs_30d, derived_active_kcal.</div></div></div>
+      <div class="step-connector"></div>
+      <div class="step"><div class="step-num" style="background:var(--color-gold-highlight);color:var(--color-gold)">4</div><div><div class="step-label">Classify</div><div class="step-detail">rule_engine.py: päiväluokka HIGH_LOAD / INTEGRATION / BASELINE + tilakoneen tila.</div></div></div>
+      <div class="step-connector"></div>
+      <div class="step"><div class="step-num" style="background:var(--color-success-highlight);color:var(--color-success)">5</div><div><div class="step-label">Recommend + Write</div><div class="step-detail">recommendation_engine.py tuottaa JSON-suosituksen. Kirjoitetaan data/records/ ja lisätään rivi data/runs.jsonl:ään.</div></div></div>
+    </div>
+  </div>
+  <div class="flow-card">
+    <div class="flow-card-title"><div class="dot" style="background:var(--color-gold)"></div>data/records/YYYY-MM-DD.json — rakenne</div>
+    <pre class="code-block"><span class="code-section">{</span>
+  <span class="code-key">"date"</span>: <span class="code-str">"2026-07-19"</span>,
+  <span class="code-key">"feature_engine_version"</span>: <span class="code-str">"1"</span>,
+  <span class="code-key">"feature_family"</span>: <span class="code-str">"derived"</span>,
+
+  <span class="code-section">"raw_inputs"</span>: {
+    <span class="code-key">"sleep_duration_s"</span>: <span class="code-val">23400</span>,
+    <span class="code-key">"average_hrv"</span>: <span class="code-val">48.2</span>,
+    <span class="code-key">"readiness_score"</span>: <span class="code-val">74</span>
+  },
+
+  <span class="code-section">"derived_features"</span>: {
+    <span class="code-key">"derived_hrv_delta_pct"</span>: <span class="code-val">-0.12</span>,
+    <span class="code-key">"derived_rhr_vs_30d"</span>: <span class="code-val">1.4</span>,
+    <span class="code-key">"derived_high_load_flag"</span>: <span class="code-val">false</span>
+  },
+
+  <span class="code-section">"oura_features"</span>: {
+    <span class="code-key">"oura_hrv_balance"</span>: <span class="code-val">72</span>,
+    <span class="code-key">"oura_resilience_level"</span>: <span class="code-str">"adequate"</span>
+  },
+
+  <span class="code-section">"classification"</span>: {
+    <span class="code-key">"day_class"</span>: <span class="code-str">"BASELINE_DAY"</span>,
+    <span class="code-key">"load_state"</span>: <span class="code-str">"Neutral"</span>
+  },
+
+  <span class="code-section">"recommendation"</span>: {
+    <span class="code-key">"text"</span>: <span class="code-str">"System stable."</span>,
+    <span class="code-key">"nap_suggested"</span>: <span class="code-val">false</span>
+  }
+<span class="code-section">}</span></pre>
+  </div>
+</div>
+
+<div class="section-header"><span class="section-title">Signal Hierarchy (#8)</span><div class="section-line"></div></div>
+<div class="signal-grid">
+  <div class="signal-card">
+    <div class="signal-label" style="color:var(--color-purple)">Trend — kapasiteettipäätökset</div>
+    <div class="signal-metrics">
+      <div class="metric-row"><span class="metric-name">derived_hrv_baseline</span><span class="metric-window">14–30d</span></div>
+      <div class="metric-row"><span class="metric-name">derived_rhr_vs_30d</span><span class="metric-window">30d</span></div>
+      <div class="metric-row"><span class="metric-name">oura_resilience_level</span><span class="metric-window">2–4vk</span></div>
+    </div>
+    <div style="margin-top:var(--space-3);font-size:10px;color:var(--color-text-faint);line-height:1.5">Vaatii ≥3 peräkkäistä yötä samaan suuntaan</div>
+  </div>
+  <div class="signal-card">
+    <div class="signal-label" style="color:var(--color-orange)">Tactical — yksittäiset ehdotukset</div>
+    <div class="signal-metrics">
+      <div class="metric-row"><span class="metric-name">total_sleep &lt; 6.5h AND hrv ≤ −10%</span><span class="metric-window">nap</span></div>
+      <div class="metric-row"><span class="metric-name">alcohol_event + ↑RHR</span><span class="metric-window">low-out</span></div>
+      <div class="metric-row"><span class="metric-name">deep_sleep ↑ + HRV rebound</span><span class="metric-window">ext.</span></div>
+    </div>
+    <div style="margin-top:var(--space-3);font-size:10px;color:var(--color-text-faint);line-height:1.5">AND-ehto pakollinen — yksittäinen signaali ei riitä</div>
+  </div>
+  <div class="signal-card">
+    <div class="signal-label" style="color:var(--color-text-faint)">Insufficient evidence</div>
+    <div class="signal-metrics">
+      <div class="metric-row"><span class="metric-name">1 yö poikkeaa</span><span class="metric-window">noise</span></div>
+      <div class="metric-row"><span class="metric-name">Sleep Score yksin</span><span class="metric-window">ignore</span></div>
+      <div class="metric-row"><span class="metric-name">REM/deep yksittäin</span><span class="metric-window">ignore</span></div>
+    </div>
+    <div style="margin-top:var(--space-3);font-size:10px;color:var(--color-text-faint);line-height:1.5">Ei kapasiteettipäätöstä — vain taktiset</div>
+  </div>
+</div>
+
+<div class="section-header"><span class="section-title">Moduulit × Issues</span><div class="section-line"></div></div>
+<div class="decision-table-wrap">
+<table>
+  <thead><tr><th>Moduuli</th><th>Issues</th><th>Status</th><th>Blokkaa</th><th>Kriittisin riippuvuus</th></tr></thead>
+  <tbody>
+    <tr><td class="td-module">config.py + config.yaml</td><td class="td-issue">#13</td><td><span class="badge badge-mvp">MVP core</span></td><td>kaikki</td><td>Kynnysarvot konfiguroitavissa</td></tr>
+    <tr><td class="td-module">oura_client.py</td><td class="td-issue">#14 #15 #16 #17 #20</td><td><span class="badge badge-mvp">MVP core</span></td><td>pipeline.py</td><td>Oura API v2 endpoint-rakenne</td></tr>
+    <tr><td class="td-module">event_manager.py</td><td class="td-issue">#13 #5</td><td><span class="badge badge-mvp">MVP core</span></td><td>pipeline.py</td><td>events.jsonl schema</td></tr>
+    <tr><td class="td-module">schema/features.v1.yaml</td><td class="td-issue">#2</td><td><span class="badge badge-mvp">MVP core</span></td><td>#3 #4</td><td>Ennen rule engineä</td></tr>
+    <tr><td class="td-module">pipeline.py</td><td class="td-issue">#1 #13</td><td><span class="badge badge-mvp">MVP core</span></td><td>#3 #4</td><td>Dual namespace: derived_* vs oura_*</td></tr>
+    <tr><td class="td-module">rule_engine.py</td><td class="td-issue">#3 #8</td><td><span class="badge badge-mvp">MVP core</span></td><td>#4 #6</td><td>Pure function, unit testit</td></tr>
+    <tr><td class="td-module">recommendation_engine.py</td><td class="td-issue">#4</td><td><span class="badge badge-mvp">MVP core</span></td><td>#9</td><td>Non-moral language</td></tr>
+    <tr><td class="td-module">experiment_manager.py</td><td class="td-issue">#7 #9</td><td><span class="badge badge-mvp">MVP miniversio</span></td><td>—</td><td>Baseline + YAML-kokeilu</td></tr>
+    <tr><td class="td-module">mcp_server.py</td><td class="td-issue">#13</td><td><span class="badge badge-post">post-MVP</span></td><td>—</td><td>CLI ensin</td></tr>
+    <tr><td class="td-module">Nap-tunnistus / Webhookit</td><td class="td-issue">#19 #22</td><td><span class="badge badge-post">post-MVP</span></td><td>—</td><td>—</td></tr>
+    <tr><td class="td-module">Split-sleep classifier</td><td class="td-issue">#10 #11 #12</td><td><span class="badge badge-post">post-MVP</span></td><td>—</td><td>Vaatii pitkän baseline-historian</td></tr>
+  </tbody>
+</table>
+</div>
+
+<footer>
+  <span>weekly-cycle-oura-skill · Architecture v1 · MVP · 2026-07</span>
+  <span><a href="https://github.com/jaakkokorhonen/weekly-cycle-oura-skill/issues?q=is%3Aissue+state%3Aopen" target="_blank" rel="noopener">Issues ↗</a></span>
+</footer>
+</div>
+
+<script>
+(function(){
+  const t=document.querySelector('[data-theme-toggle]');
+  const r=document.documentElement;
+  t&&t.addEventListener('click',()=>{
+    const next=r.getAttribute('data-theme')==='dark'?'light':'dark';
+    r.setAttribute('data-theme',next);
+    t.innerHTML=next==='dark'
+      ?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
+      :'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
+  });
+})();
+</script>
+</body>
+</html>
