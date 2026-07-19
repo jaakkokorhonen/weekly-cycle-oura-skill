@@ -52,7 +52,7 @@ Tämän skillin suunnittelua motivoi eksplisiittinen kritiikki siitä, miten kau
 
 ### 1. Implisiittinen normi esitetään neutraalina mittarina
 
-Oura ja vastaavat palvelut laskevat "readiness"- ja "sleep score" -lukuja, jotka perustuvat oletukseen, että paras mahdollinen tila on yksi yhtenäinen, mahdollisimman pitkä ja katkeamaton uni. Tämä on normatiivinen valinta, ei neutraali mitta — se olettaa, että unen tehtävä on itsessään maksimoitava suure, ei väline muun elämän (työ, sosiaalisuus, rajojen kokeilu) mahdollistamiseksi. Kun esimerkiksi Oura-blogi kuvaa alkoholin vaikutusta uneen, se toistaa kaavan "nopeampi nukahtaminen, mutta laatu kärsii merkittävästi" [web:185] — arvottaen laadun poikkeaman automaattisesti negatiiviseksi sen sijaan, että kysyisi, mihin tarkoitukseen nopeampi nukahtaminen sinä iltana palveli.
+Oura ja vastaavat palvelut laskevat "readiness"- ja "sleep score" -lukuja, jotka perustuvat oletukseen, että paras mahdollinen tila on yksi yhtenäinen, mahdollisimman pitkä ja katkeamaton uni. Tämä on normatiivinen valinta, ei neutraali mitta — se olettaa, että unen tehtävä on itsessään maksimoitava suure, ei väline muun elämän (työ, sosiaalisuus, rajojen kokeilu) mahdollistamiseksi. Kun esimerkiksi Oura-blogi kuvaa alkoholin vaikutusta uneen, se toistaa kaavan "nopeampi nukahtaminen, mutta laatu kärsii merkittävästi" [web:185] — arvottaen laadun poikkeaman automaattisesti negatiiviseksi sen sijaan, että kysyisi, mitä tarkoitusta nopeampi nukahtaminen sinä iltana palveli.
 
 ### 2. Annosvasteen ja kynnysarvojen sekoittaminen blanket-suosituksiin
 
