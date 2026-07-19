@@ -10,6 +10,16 @@ Tämä dokumentti kuvaa, mitkä Oura API v2 -endpointit ja kentät valittiin MVP
 | `/v2/usercollection/daily_readiness` | Haetaan, mutta kenttiä ei käytetä luokitteluun |
 | `/v2/usercollection/daily_activity` | Aktiivisuuskalorerit (active_calories) |
 | `/v2/usercollection/heartrate` | Sykeaikasarja nap-tunnistukseen (`source == 'rest'`) |
+| `/v2/usercollection/tag` | `manual_event`-kirjausten lähde (kofeiini, alkoholi, ateria, nap) |
+
+### Miksi `/tag` on MVP:ssä
+
+Ouran tagit toimivat `manual_event`-kirjausten ensisijaisena sisääntulokanavana:
+1. Käyttäjä kirjaa tapahtumat Oura-appissa (kofeiini, alkoholi, ateria, nap) — ei erillistä kirjauskäyttöliittymää MVP:ssä
+2. `event_manager.py` lukee tagit `/tag`-endpointilta ja normalisoi ne `events.jsonl`-muotoon
+3. Retrospektiivinen data on saatavilla heti ensikäynnistyksessä — ei kylmäkäynnistysviivettä manuaalitapahtumille
+
+**Muutos aiempaan:** Aikaisempi päätös ("`/tag` on post-MVP — tagit epäluotettavia") perustui oletukseen, että käyttäjä kirjaa vapaamuotoisesti. MVP käyttää **ennalta sovittuja tag-labeleja** (`caffeine`, `alcohol`, `meal`, `nap`), jolloin epäluotettavuusongelma poistuu — tuntematon label ohitetaan hiljaisesti.
 
 ### Miksi `/heartrate` jo MVP:ssä
 
@@ -21,10 +31,6 @@ Nap-tunnistus (`segment_sleep_night()`) on post-MVP, mutta `/heartrate`-data hae
 ### Miksi `/workout` ei ole MVP:ssä
 
 `/workout`-endpoint lisätään post-MVP:ssä harjoituspäivien tunnistamiseen. MVP käyttää `active_calories`-arvoa riittävänä HIGH_LOAD_DAY-signaalina.
-
-### Miksi `/tag` ei ole MVP:ssä
-
-Ouran tagit ovat epäluotettavia (käyttäjän kirjaus vaihtelee). Kaikki manuaalinen tapahtumakirjaus tapahtuu `event_manager.py`:n kautta `events.jsonl`-tiedostoon.
 
 ## Kenttävalinta per endpoint
 
@@ -79,7 +85,7 @@ Ouran tagit ovat epäluotettavia (käyttäjän kirjaus vaihtelee). Kaikki manuaa
 > - `score` (`oura.readiness_score`) — poistettu MVP-scopesta. Tallennetaan `raw`:iin läpinäkyvyyttä varten, mutta `rule_engine.py` ei lue sitä.
 > - `contributors.hrv_balance` — poistettu MVP-scopesta. HRV-trendisignaali lasketaan `sleep.average_hrv`-pohjaisesta 14d-mediaanista (`derived_hrv_delta_pct`), ei Ouran omasta `hrv_balance`-luvusta.
 >
-> **Rationale:** MVP:n luokittelu perustuu yksinomaan `derived.*`-nimiavaruuteen. Kaksi lähdettä samalle signaalille (Ouran `hrv_balance` ja oma `derived_hrv_delta_pct`) aiheuttaisivat ristiriidan säännöissä ja monimutkaistuisivat testit. Post-MVP:ssä `hrv_balance_status` voidaan lisätä `rule_engine`:en lisäehtona tai `recommendation_engine`:en selitystekstiin.
+> **Rationale:** MVP:n luokittelu perustuu yksinomaan `derived.*`-nimiavaruuteen. Kaksi lähdettä samalle signaalille aiheuttaisivat ristiriidan säännöissä. Post-MVP:ssä `hrv_balance_status` voidaan lisätä `rule_engine`:en lisäehtona.
 
 **Ei käytetä MVP:ssä:** `score`, `hrv_balance_status`, `contributors.*`
 
@@ -113,6 +119,35 @@ Ouran tagit ovat epäluotettavia (käyttäjän kirjaus vaihtelee). Kaikki manuaa
 - `bpm` — sykearvo
 - `source` — suodatus: `rest` = mahdollinen päiväuni tai lepo
 
+### `/v2/usercollection/tag`
+
+```json
+{
+  "id": "...",
+  "day": "2026-07-18",
+  "timestamp": "2026-07-18T11:30:00+03:00",
+  "text": "caffeine",
+  "tags": ["caffeine"]
+}
+```
+
+**Käytetyt kentät MVP:ssä:**
+- `timestamp` — tapahtuman ajankohta (offset-aware, säilytetään alkuperäinen offset)
+- `tags` — label-lista; `event_manager.py` lukee ensimmäisen tunnistetun arvon
+
+**Tunnistetut MVP-labelit** (case-insensitive, ohitetaan muut hiljaisesti):
+
+| Oura tag | Normalisoitu `type` | Pakolliset lisäkentät `events.jsonl`:ssa |
+|---|---|---|
+| `caffeine` | `caffeine` | `amount` → `null` (Oura-tagi ei sisällä mg-arvoa) |
+| `alcohol` | `alcohol` | `amount` → `null` |
+| `meal` | `meal` | `meal_type` → `null` |
+| `nap` | `nap` | `duration_min` → `null` (päätellään heartrate-datasta post-MVP) |
+
+**Tärkeä rajoitus:** Oura tag ei sisällä numeerisia arvoja (`amount`, `duration_min`). Nämä kentät tallennetaan `null`-arvolla. `compute_caffeine_window()` ja `compute_alcohol_window()` käsittelevät `null`-arvot gracefully — laskevat ikkunan ajankohdan mutta eivät annosmäärää.
+
+**Ei käytetä MVP:ssä:** `text` (käytetään `tags`-arrayta), `comment`
+
 ## Missing-data contract
 
 `oura_client.fetch_range()` takaa, että jokainen päivä sisältää kaikki avaimet:
@@ -123,6 +158,7 @@ Ouran tagit ovat epäluotettavia (käyttäjän kirjaus vaihtelee). Kaikki manuaa
 | `daily_readiness` | Ei tietuetta | `None` |
 | `daily_activity` | Ei tietuetta | `None` |
 | `heartrate` | Ei mittauksia | `[]` |
+| `tag` | Ei tageja | `[]` |
 
 `pipeline.py` ei tee `dict.get()`-tarkistuksia — client takaa rakenteen.
 
