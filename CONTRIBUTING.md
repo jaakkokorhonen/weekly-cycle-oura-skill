@@ -39,12 +39,32 @@ uv run ruff check src/ tests/
 
 > **Huom:** `tests/unit/` ajetaan automaattisesti. `tests/post_mvp/` ei aja automaattisesti — ne testataan erikseen kun vastaavat moduulit toteutetaan.
 
+## Tiedostorakenne ja alikansiot
+
+**Kaikki dokumentaatiotiedostot ovat repojuuressa** — ei `docs/`-alikansioita.
+
+Käytäntö: uusi `.md`-tiedosto luodaan aina juureen, ei alikansioon. Tämä pitää viittaukset yksinkertaisina ja tiedostot löydettävinä ilman hakemistopuun navigointia.
+
+```
+weekly-cycle-oura-skill/
+├── README.md
+├── CONTRIBUTING.md        ← tämä tiedosto
+├── ARCHITECTURE.md        ← moduulit, datavirta, hakemistorakenne
+├── oura-api-decisions.md  ← endpoint- ja kenttävalinnat
+├── design.md              ← tausta, tavoite, analyysifunktiot
+├── config.yaml.example
+├── pyproject.toml
+├── src/
+├── tests/
+└── data/
+```
+
 ## MVP-toteutusjärjestys (TDD-polku)
 
 Riippuvuusgraafin mukainen eteneminen. Jokainen moduuli toteutetaan punainen–vihreä–refaktoroi -syklillä.
 
 ```
-1. config.yaml.example   ← luotava ennen ensimmäistä pytest-ajoa
+1. config.yaml.example   ← jo repossa — kopioi config.yaml:ksi ennen pytest-ajoa
 2. src/oura_client.py    (#26) — ei riippuvuuksia
 3. src/event_manager.py  (#27) — ei riippuvuuksia, rinnakkain #26:n kanssa
 4. src/features.py       (#2)  — ei riippuvuuksia
@@ -58,7 +78,7 @@ Kaikki testiskeletot ovat valmiina `tests/unit/`-kansiossa ja **epäonnistuvat t
 
 ## Konfiguraatio
 
-`config.yaml` on gitignore:ssa. Versionhallinnassa on `config.yaml.example` joka sisältää kaikki kentät tyhjillä arvoilla.
+`config.yaml` on `.gitignore`:ssa. Versionhallinnassa on `config.yaml.example`, joka sisältää kaikki kentät tyhjillä arvoilla.
 
 Yksikkötestit **eivät koskaan** lue oikeaa `config.yaml`:ia — ne käyttävät inline-dict-fixtureita tai `tmp_path`-fixturea.
 
