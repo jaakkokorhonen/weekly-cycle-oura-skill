@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=70", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "weekly-cycle-oura-skill"
+version = "0.1.0"
+description = "N-of-1 weekly cycle tracking with Oura Ring data"
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.32",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2",
+    "responses>=0.25",  # HTTP mock for oura_client tests
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
