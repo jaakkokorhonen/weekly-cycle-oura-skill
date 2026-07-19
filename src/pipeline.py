@@ -323,3 +323,23 @@ class Pipeline:
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
             raise e
+        return record_payload
+
+
+    def get_record(self, date_str: str) -> dict:
+        """Reads and returns the analysis record for a given date."""
+        record_file = self.records_dir / f"{date_str}.json"
+        if not record_file.exists():
+            raise FileNotFoundError(f"Record for {date_str} not found.")
+        with open(record_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    def get_latest_record(self) -> dict:
+        """Reads and returns the most recent analysis record in records_dir."""
+        files = sorted(self.records_dir.glob("*.json"))
+        if not files:
+            raise FileNotFoundError("No analysis records found.")
+        # Return the last (chronologically most recent) record file
+        with open(files[-1], "r", encoding="utf-8") as f:
+            return json.load(f)
+
