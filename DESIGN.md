@@ -90,22 +90,28 @@ Tätä käytetään arvioimaan, miten ruokailun ajoitus liittyy nukahtamiseen ja
 
 #### `compute_caffeine_window(day_events, sleep_sessions)` *(MVP)*
 
-Laskee viimeisen kofeiinitapahtuman ja pääunijakson alun välisen ajan sekä mahdolliset annostasot. Tulos:
+Laskee viimeisen kofeiinitapahtuman ja pääunijakson alun välisen ajan. MVP:ssä `amount` on aina `null` — säännöt perustuvat binääriseen läsnäoloon ja ajoitukseen, ei mg-määrään. Tulos:
 
-- `last_caffeine_time`
-- `caffeine_sleep_gap_hours`
-- `caffeine_total_mg_estimate`
+- `caffeine_present` — bool, oliko kofeiinia kirjattu päivälle
+- `last_caffeine_time` — viimeisen tapahtuman aikaleima
+- `caffeine_sleep_gap` — tuntia viimeisestä kofeiinista unen alkuun
+- `caffeine_hours_before_bed` — alias `caffeine_sleep_gap`:lle rule_enginen käyttöön
+
+> **MVP-huomio:** `caffeine_total_mg_estimate` lisätään post-MVP:ssä kun `amount`-kenttä otetaan käyttöön tapahtumakirjauksessa.
 
 Tämä funktio perustuu tietoon siitä, että kofeiinin huippuvaikutus syntyy noin 30–45 minuutissa ja puoliintumisaika on noin 4–7 tuntia.
 
 #### `compute_alcohol_window(day_events, sleep_sessions)` *(MVP)*
 
-Laskee alkoholin ajoituksen suhteessa nukahtamiseen ja yön rakenteeseen. Tulos:
+Laskee alkoholin ajoituksen suhteessa nukahtamiseen ja yön rakenteeseen. MVP:ssä `amount` on aina `null` — `alcohol_present` (bool) riittää rule_enginelle. Tulos:
 
-- `last_alcohol_time`
-- `alcohol_sleep_gap_hours`
-- `alcohol_total_units`
-- `alcohol_flag_before_first_sleep`
+- `alcohol_present` — bool, oliko alkoholia kirjattu päivälle
+- `last_alcohol_time` — viimeisen tapahtuman aikaleima
+- `alcohol_sleep_gap` — tuntia viimeisestä alkoholista unen alkuun
+- `alcohol_hours_before_bed` — alias `alcohol_sleep_gap`:lle rule_enginen käyttöön
+- `alcohol_flag_before_first_sleep` — bool
+
+> **MVP-huomio:** `alcohol_total_units` lisätään post-MVP:ssä kun `amount`-kenttä otetaan käyttöön tapahtumakirjauksessa.
 
 Tätä käytetään mallintamaan tilannetta, jossa alkoholi toimii mahdollisena ensimmäisen unijakson käynnistäjänä mutta samalla näkyy HRV:n ja univaiheiden muutoksina.
 
