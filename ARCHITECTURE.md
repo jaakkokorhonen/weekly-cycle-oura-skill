@@ -4,8 +4,10 @@
 
 Skill on Python-pohjainen analyysikerros, joka lukee Oura API v2:sta fysiologisen datan, rikastaa sen johdetuilla muuttujilla, luokittelee päivän ja tuottaa lyhyen taktisen suositustekstin. Järjestelmä altistaa toimintansa MCP-protokollan kautta AI-assistenteille (Antigravity, Perplexity).
 
+Katso taustat ja tavoitteet: [DESIGN.md](DESIGN.md) — Oura API -kenttävalinnat: [OURA-API-DECISIONS.md](OURA-API-DECISIONS.md)
+
 ```
-┌──────────────────────────────────────────────────────────┐
+┌────────────────────────────────────────────────────────┐
 │                    AI-asiakkaat                          │
 │            Antigravity         Perplexity                │
 └──────────────────┬──────────────────┬────────────────────┘
@@ -22,12 +24,12 @@ Skill on Python-pohjainen analyysikerros, joka lukee Oura API v2:sta fysiologise
          │           pipeline.py          │
          │  orchestroija — fetch, enrich, │
          │  classify, recommend, write    │
-         └────┬──────────────────────┬───┘
+         └────┬───────────────────────┬───┘
               │                      │
-     ┌────────┴──┐           ┌───────┴──────────┐
-     │oura_      │           │ event_            │
-     │client.py  │           │ manager.py        │
-     └───────┬───┘           └────┬──────────────┘
+     ┌────────┴───┐           ┌──────┴──────────────┐
+     │oura_       │           │ event_              │
+     │client.py   │           │ manager.py          │
+     └───────┬────┘           └────┬────────────────┘
              │                    │
              ▼                    ▼
          ┌────────────────────────────────┐
@@ -35,8 +37,8 @@ Skill on Python-pohjainen analyysikerros, joka lukee Oura API v2:sta fysiologise
          │  derived-muuttujat             │
          └──────────────┬────────────────┘
                         │
-             ┌──────────┴──────────────┐
-             ▼                         ▼
+             ┌──────────┴──────────────────┐
+             ▼                             ▼
      ┌───────────────┐   ┌──────────────────────┐
      │ rule_engine   │   │ recommendation_      │
      │ .py           │   │ engine.py            │
@@ -85,7 +87,7 @@ Lukee, kirjoittaa ja validoi `data/events.jsonl`-tiedoston.
 
 ### `src/features.py` — derived-muuttujat
 
-Laskee kaikki `derived`-nimiavaruuden muuttujat Oura-raakasdatasta ja event_manager-tapahtumista.
+Laskee kaikki `derived`-nimiavaruuden muuttujat Oura-raakadatasta ja event_manager-tapahtumista.
 
 **Nimiavaruudet:**
 - `derived.*` — skillin laskema (esim. `hrv_delta_pct`, `caffeine_sleep_gap`)
@@ -190,7 +192,7 @@ Altistaa skillin toiminnot AI-assistenteille MCP-protokollan kautta. Käyttää 
 
 **MVP-työkalut:**
 
-| Työkalu | Kuvaus |
+| Työkalunimi | Kuvaus |
 |---|---|
 | `run_pipeline(date?)` | Hae Oura-data, laske piirteet, palauta suositus |
 | `log_event(type, amount?, unit?, note)` | Kirjaa manuaalinen tapahtuma |
@@ -248,8 +250,8 @@ weekly-cycle-oura-skill/
 ├── README.md
 ├── CONTRIBUTING.md
 ├── ARCHITECTURE.md         # tämä tiedosto
-├── design.md
-├── oura-api-decisions.md
+├── DESIGN.md
+├── OURA-API-DECISIONS.md
 ├── src/
 │   ├── oura_client.py
 │   ├── event_manager.py

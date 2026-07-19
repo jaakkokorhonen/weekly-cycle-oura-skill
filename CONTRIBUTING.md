@@ -39,19 +39,22 @@ uv run ruff check src/ tests/
 
 > **Huom:** `tests/unit/` ajetaan automaattisesti. `tests/post_mvp/` ei aja automaattisesti — ne testataan erikseen kun vastaavat moduulit toteutetaan.
 
-## Tiedostorakenne ja alikansiot
+## Tiedostorakenne ja nimeämiskäytännöt
 
 **Kaikki dokumentaatiotiedostot ovat repojuuressa** — ei `docs/`-alikansioita.
 
-Käytäntö: uusi `.md`-tiedosto luodaan aina juureen, ei alikansioon. Tämä pitää viittaukset yksinkertaisina ja tiedostot löydettävinä ilman hakemistopuun navigointia.
+Käytännöt:
+- Uusi `.md`-tiedosto luodaan aina juureen, ei alikansioon.
+- Tiedostonimi kirjoitetaan **kokonaan isoilla kirjaimilla** (`CAPS.md`), esimerkiksi `ARCHITECTURE.md`, `DESIGN.md`, `OURA-API-DECISIONS.md`.
+- Poikkeuksia ovat ainoastaan GitHubin tunnistamia vakiotiedostoja: `README.md`, `CONTRIBUTING.md`, `LICENSE`.
 
 ```
 weekly-cycle-oura-skill/
 ├── README.md
 ├── CONTRIBUTING.md        ← tämä tiedosto
 ├── ARCHITECTURE.md        ← moduulit, datavirta, hakemistorakenne
-├── oura-api-decisions.md  ← endpoint- ja kenttävalinnat
-├── design.md              ← tausta, tavoite, analyysifunktiot
+├── DESIGN.md              ← tausta, tavoite, analyysifunktiot
+├── OURA-API-DECISIONS.md  ← endpoint- ja kenttävalinnat
 ├── config.yaml.example
 ├── pyproject.toml
 ├── src/
