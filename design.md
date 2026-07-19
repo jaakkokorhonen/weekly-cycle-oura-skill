@@ -28,6 +28,10 @@ Tämä viimeinen luokka on skillin varsinainen lisäarvo: se ei vain lue mittare
 
 Teknisesti skill toimii tapahtumavetoisena analyysikerroksena, joka lukee Oura-datan päivä- ja viikkotasolla, normalisoi sen, rikastaa sen johdetuilla muuttujilla ja suorittaa analyysifunktioita jokaisen päivän sekä viikon lopussa. Järjestelmä voidaan ajatella neljänä putkena: ingest, normalisointi, rikastus, analyysi.
 
+### Kehitysympäristö ja riippuvuudet
+
+Projektissa käytetään yksinomaan **uv**-työkalua virtuaaliympäristön (virtualenv) luomiseen sekä kaikkien riippuvuuksien (kuten `pytest`, `responses`, `click`/`argparse`) hallintaan. Tämä takaa nopean ja yhdenmukaisen suoritusympäristön testaukselle ja ajolle.
+
 ### 1. Ingest
 
 Ingest-vaiheessa haetaan Ourasta tai integroiduista lokilähteistä seuraavat tapahtumat:
@@ -45,7 +49,9 @@ Ingest-vaiheessa haetaan Ourasta tai integroiduista lokilähteistä seuraavat ta
 
 ### 2. Normalisointi
 
-Normalisointivaihe muuntaa eri lähteistä tulevan datan yhdeksi aikajärjestetyksi tapahtumasarjaksi. Tässä vaiheessa kaikki tapahtumat saavat ainakin seuraavat kentät:
+Normalisointivaihe muuntaa eri lähteistä tulevan datan yhdeksi aikajärjestetyksi tapahtumasarjaksi. Aikavyöhykkeiden käsittelyssä säilytetään tapahtumien alkuperäiset aikavyöhykkeiden offset-tiedot (esim. `+03:00` tai `Z`) eikä niitä pakoteta UTC-muotoon, mikä helpottaa ilta- ja yörajojen hahmottamista laskentalogiikassa.
+
+Tässä vaiheessa kaikki tapahtumat saavat ainakin seuraavat kentät:
 
 - `timestamp_start`
 - `timestamp_end`
