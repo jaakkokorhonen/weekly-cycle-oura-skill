@@ -137,16 +137,20 @@ Nap-tunnistus (`segment_sleep_night()`) on post-MVP, mutta `/heartrate`-data hae
 
 **Tunnistetut MVP-labelit** (case-insensitive, ohitetaan muut hiljaisesti):
 
-| Oura tag | Normalisoitu `type` | Pakolliset lisäkentät `events.jsonl`:ssa |
+| Oura tag | Normalisoitu `type` | `amount`-kenttä |
 |---|---|---|
-| `caffeine` | `caffeine` | `amount` → `null` (Oura-tagi ei sisällä mg-arvoa) |
-| `alcohol` | `alcohol` | `amount` → `null` |
-| `meal` | `meal` | `meal_type` → `null` |
-| `nap` | `nap` | `duration_min` → `null` (päätellään heartrate-datasta post-MVP) |
+| `caffeine` | `caffeine` | **aina `null`** — ei mittauskeinoa |
+| `alcohol` | `alcohol` | **aina `null`** — ei mittauskeinoa |
+| `meal` | `meal` | **aina `null`** — ei mittauskeinoa |
+| `nap` | `nap` | **aina `null`** — ei mittauskeinoa |
 
-**Tärkeä rajoitus:** Oura tag ei sisällä numeerisia arvoja (`amount`, `duration_min`). Nämä kentät tallennetaan `null`-arvolla. `compute_caffeine_window()` ja `compute_alcohol_window()` käsittelevät `null`-arvot gracefully — laskevat ikkunan ajankohdan mutta eivät annosmäärää.
+> **Arkkitehtuuripäätös (2026-07-19): `amount` on aina `null` — ei mittauskeinoa**
+>
+> Oura-tagi ei sisällä numeerisia arvoja. Minkään muun syötteen kautta kofeiini/alkoholi/ateria-määrää ei kerätä MVP:ssä. `amount`-kenttä poistetaan kaikista ikkunalaskuista — `features.py`:n `compute_caffeine_window()` ja `compute_alcohol_window()` toimivat **binäärisen läsnäolon** (tapahtuma kyllä/ei) ja **ajankohdan** perusteella, eivät annosmittauksen perusteella.
+>
+> `amount`-kenttää ei poisteta `events.jsonl`-skeemasta — se tallennetaan `null`-arvolla lisäämään tulevaa yhteensopivuutta (post-MVP `log_event`-tyvälin kautta annoksen kirjaus on mahdollista).
 
-**Ei käytetä MVP:ssä:** `text` (käytetään `tags`-arrayta), `comment`
+**Ei käytetä MVP:ssä:** `text` (käytetään `tags`-arrayta), `comment`, `amount`
 
 ## Missing-data contract
 
