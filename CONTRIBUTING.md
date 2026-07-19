@@ -14,13 +14,11 @@ pip install -r requirements.txt  # kun requirements.txt on luotu
 
 ```
 weekly-cycle-oura-skill/
-├── README.md            # Yleiskuvaus ja käyttöönotto
-├── design.md            # Arkkitehtuuri ja suunnittelupäätökset
-├── CONTRIBUTING.md      # Tämä tiedosto
-├── docs/
-│   ├── oura-api-decisions.md   # Oura API v2 -selvitysten ratkaisut
-│   └── architecture.html       # Arkkitehtuurikaavio (tulossa)
-└── src/                        # Tulossa: oura_client.py, pipeline.py jne.
+├── README.md                 # Yleiskuvaus ja käyttöönotto
+├── design.md                 # Arkkitehtuuri ja suunnittelupäätökset
+├── oura-api-decisions.md     # Oura API v2 -selvitysten ratkaisut
+├── CONTRIBUTING.md           # Tämä tiedosto
+└── src/                      # Tulossa: oura_client.py, pipeline.py jne.
 ```
 
 ## Tiketöintikäytäntö
@@ -40,4 +38,4 @@ weekly-cycle-oura-skill/
 
 ## Oura API
 
-Katso [`docs/oura-api-decisions.md`](docs/oura-api-decisions.md) — siellä on koottu kaikki MVP:n endpointtipäätökset ja kenttävalinnat.
+Katso [`oura-api-decisions.md`](oura-api-decisions.md) — siellä on koottu kaikki MVP:n endpointtipäätökset ja kenttävalinnat.
