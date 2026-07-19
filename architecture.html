@@ -1,1 +1,317 @@
-<!-- architecture.html pushed separately via create_or_update_file due to size -->
+<!DOCTYPE html>
+<html lang="fi" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Arkkitehtuuri – weekly-cycle-oura-skill</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root,[data-theme="light"]{
+      --bg:#f7f6f2;--surface:#f9f8f5;--surface2:#edeae5;--border:#d4d1ca;
+      --text:#28251d;--muted:#7a7974;--faint:#bab9b4;
+      --primary:#01696f;--primary-h:#0c4e54;--primary-hi:#cedcd8;
+      --success:#437a22;--warning:#964219;--error:#a12c7b;--blue:#006494;
+      --shadow:0 4px 16px oklch(0.2 0.01 80/0.10);
+      --radius:0.5rem;--font-body:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;
+    }
+    [data-theme="dark"]{
+      --bg:#171614;--surface:#1c1b19;--surface2:#22211f;--border:#393836;
+      --text:#cdccca;--muted:#797876;--faint:#5a5957;
+      --primary:#4f98a3;--primary-h:#227f8b;--primary-hi:#313b3b;
+      --success:#6daa45;--warning:#bb653b;--error:#d163a7;--blue:#5591c7;
+      --shadow:0 4px 16px oklch(0 0 0/0.35);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+    body{font-family:var(--font-body);font-size:1rem;line-height:1.65;color:var(--text);background:var(--bg);min-height:100dvh;transition:background .2s,color .2s}
+    a{color:var(--primary);text-decoration:none}a:hover{text-decoration:underline}
+    code,pre{font-family:var(--font-mono);font-size:0.85em}
+
+    /* Layout */
+    .page{max-width:900px;margin-inline:auto;padding:2rem 1.5rem 6rem}
+    header{display:flex;align-items:center;justify-content:space-between;padding-block:1.5rem 2.5rem;border-bottom:1px solid var(--border);margin-bottom:3rem;gap:1rem;flex-wrap:wrap}
+    .header-left{display:flex;align-items:center;gap:.75rem}
+    .logo{width:32px;height:32px;flex-shrink:0}
+    h1{font-size:clamp(1.1rem,2vw,1.4rem);font-weight:600;letter-spacing:-.02em;color:var(--text)}
+    .subtitle{font-size:.85rem;color:var(--muted);margin-top:.15rem}
+
+    /* Toggle */
+    .toggle-btn{background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:.35rem .75rem;font-size:.8rem;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:.4rem;transition:background .15s,color .15s;white-space:nowrap}
+    .toggle-btn:hover{background:var(--primary-hi);color:var(--primary)}
+
+    /* Section */
+    section{margin-bottom:3rem}
+    h2{font-size:1.15rem;font-weight:600;color:var(--text);margin-bottom:1.25rem;padding-bottom:.6rem;border-bottom:1px solid var(--border)}
+    h3{font-size:.95rem;font-weight:600;color:var(--text);margin-bottom:.75rem;margin-top:1.5rem}
+    p{color:var(--muted);font-size:.9rem;margin-bottom:.75rem;max-width:72ch}
+
+    /* Pipeline */
+    .pipeline{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:2rem}
+    .stage{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;position:relative;transition:box-shadow .15s}
+    .stage:hover{box-shadow:var(--shadow)}
+    .stage-num{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--primary);margin-bottom:.4rem}
+    .stage-name{font-size:1rem;font-weight:600;color:var(--text);margin-bottom:.4rem}
+    .stage-desc{font-size:.8rem;color:var(--muted);line-height:1.5}
+    .stage-arrow{position:absolute;right:-0.6rem;top:50%;transform:translateY(-50%);color:var(--border);font-size:1.2rem;pointer-events:none}
+    @media(max-width:600px){.stage-arrow{display:none}}
+
+    /* Module table */
+    .table-wrap{overflow-x:auto;margin-bottom:1.5rem}
+    table{width:100%;border-collapse:collapse;font-size:.82rem}
+    thead tr{background:var(--surface2)}
+    th,td{padding:.55rem .85rem;text-align:left;border-bottom:1px solid var(--border);color:var(--muted)}
+    th{font-weight:600;color:var(--text);font-size:.78rem;letter-spacing:.04em;text-transform:uppercase}
+    td:first-child{font-family:var(--font-mono);color:var(--text);font-size:.8rem}
+    .badge{display:inline-block;font-size:.7rem;padding:.15rem .45rem;border-radius:99px;font-weight:500;white-space:nowrap}
+    .badge-mvp{background:color-mix(in oklch,var(--success) 12%,var(--surface));color:var(--success)}
+    .badge-post{background:color-mix(in oklch,var(--blue) 12%,var(--surface));color:var(--blue)}
+    .badge-issue{background:var(--surface2);color:var(--muted)}
+
+    /* Signal hierarchy */
+    .signal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}
+    .signal-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem}
+    .signal-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem}
+    .signal-label.trend{color:var(--primary)}
+    .signal-label.tactical{color:var(--warning)}
+    .signal-label.insuff{color:var(--faint)}
+    .signal-card ul{list-style:none;padding:0;margin:0}
+    .signal-card li{font-size:.8rem;color:var(--muted);padding:.25rem 0;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:.4rem}
+    .signal-card li:last-child{border-bottom:none}
+    .signal-card li::before{content:"•";color:var(--primary);flex-shrink:0}
+    .signal-label.tactical~ul li::before{color:var(--warning)}
+    .signal-label.insuff~ul li::before{color:var(--faint)}
+
+    /* Feature namespace */
+    .ns-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    @media(max-width:500px){.ns-grid{grid-template-columns:1fr}}
+    .ns-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem}
+    .ns-title{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem}
+    .ns-oura .ns-title{color:var(--primary)}
+    .ns-derived .ns-title{color:var(--warning)}
+    .ns-card code{font-size:.78rem;color:var(--text);display:block;padding:.2rem 0;border-bottom:1px solid var(--border)}
+    .ns-card code:last-child{border-bottom:none}
+
+    /* Record schema */
+    .schema-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;overflow-x:auto}
+    .schema-block pre{font-size:.8rem;line-height:1.7;color:var(--muted)}
+    .schema-block .key{color:var(--primary)}
+    .schema-block .val{color:var(--text)}
+    .schema-block .comment{color:var(--faint)}
+
+    /* Footer */
+    footer{margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--border);font-size:.78rem;color:var(--faint);display:flex;gap:1rem;flex-wrap:wrap;justify-content:space-between}
+  </style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="header-left">
+      <svg class="logo" viewBox="0 0 32 32" fill="none" aria-label="Logo">
+        <rect width="32" height="32" rx="8" fill="var(--primary)" opacity=".15"/>
+        <circle cx="16" cy="13" r="5" stroke="var(--primary)" stroke-width="1.8"/>
+        <path d="M9 24c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M21 8l2 2-2 2" stroke="var(--primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <h1>weekly-cycle-oura-skill</h1>
+        <div class="subtitle">Data-pipeline arkkitehtuuri · v0.1 MVP</div>
+      </div>
+    </div>
+    <button class="toggle-btn" onclick="toggleTheme()" id="theme-btn" aria-label="Vaihda teema">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      Vaalea tila
+    </button>
+  </header>
+
+  <!-- Pipeline -->
+  <section>
+    <h2>4-vaiheinen pipeline</h2>
+    <p>Jokainen vaihe on itsenäinen moduuli ilman sivuvaikutuksia edelliseen — mahdollistaa yksikkötestauksen ja A/B-koeasetelman.</p>
+    <div class="pipeline">
+      <div class="stage">
+        <div class="stage-num">Vaihe 1</div>
+        <div class="stage-name">Ingest</div>
+        <div class="stage-desc">Hakee Oura API v2 -vastaukset (sleep, readiness, activity, heartrate) + käyttäjän tapahtumaloki. Kirjoittaa <code>data/raw_inputs/YYYY-MM-DD.json</code>.</div>
+        <div class="stage-arrow">›</div>
+      </div>
+      <div class="stage">
+        <div class="stage-num">Vaihe 2</div>
+        <div class="stage-name">Normalize</div>
+        <div class="stage-desc">Pakottaa kaikki aikaleimant UTC:ksi (EET/EEST off-by-one-riski). Validoi <code>schema/features.v1.yaml</code> vasten.</div>
+        <div class="stage-arrow">›</div>
+      </div>
+      <div class="stage">
+        <div class="stage-num">Vaihe 3</div>
+        <div class="stage-name">Feature Engineering</div>
+        <div class="stage-desc">Laskee <code>derived_*</code>-muuttujat: HRV-delta-%, RHR vs. 30d. Duaalinen nimiavaruus A/B-vertailua varten.</div>
+        <div class="stage-arrow">›</div>
+      </div>
+      <div class="stage">
+        <div class="stage-num">Vaihe 4</div>
+        <div class="stage-name">Classify &amp; Output</div>
+        <div class="stage-desc">Puhdas funktio: feature-dict → luokka (HIGH_LOAD / INTEGRATION / BASELINE_DAY) + tila + tekstisuositus.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modules -->
+  <section>
+    <h2>Moduulit × Issues</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Moduuli</th><th>Vastuu</th><th>Issue</th><th>Scope</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>oura_client.py</td><td>API-haku, token, välimuisti</td><td><span class="badge badge-issue">#13</span></td><td><span class="badge badge-mvp">MVP</span></td></tr>
+          <tr><td>event_manager.py</td><td>Kofeiini / alkoholi / ruokailu -loki</td><td><span class="badge badge-issue">#6</span></td><td><span class="badge badge-mvp">MVP</span></td></tr>
+          <tr><td>pipeline.py</td><td>Orkestrointi, UTC-normalisointi</td><td><span class="badge badge-issue">#1</span></td><td><span class="badge badge-mvp">MVP</span></td></tr>
+          <tr><td>feature_engineering.py</td><td>derived_* -muuttujat, ikkunat</td><td><span class="badge badge-issue">#3</span></td><td><span class="badge badge-mvp">MVP</span></td></tr>
+          <tr><td>rule_engine.py</td><td>Puhdas luokittelufunktio</td><td><span class="badge badge-issue">#4</span></td><td><span class="badge badge-mvp">MVP</span></td></tr>
+          <tr><td>recommendation_engine.py</td><td>Ei-moralistinen tekstisuositus</td><td><span class="badge badge-issue">#5</span></td><td><span class="badge badge-mvp">MVP</span></td></tr>
+          <tr><td>schema/features.v1.yaml</td><td>Skeemavalidointi</td><td><span class="badge badge-issue">#2</span></td><td><span class="badge badge-mvp">MVP</span></td></tr>
+          <tr><td>config.yaml</td><td>Kynnysarvot (ainoa paikka)</td><td>–</td><td><span class="badge badge-mvp">MVP</span></td></tr>
+          <tr><td>ml_classifier.py</td><td>Korvaa rule_engine.py post-MVP:ssä</td><td><span class="badge badge-issue">#9</span></td><td><span class="badge badge-post">post-MVP</span></td></tr>
+          <tr><td>calibration.py</td><td>Yksilöllinen kynnysarvojen säätö</td><td><span class="badge badge-issue">#10</span></td><td><span class="badge badge-post">post-MVP</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Feature namespaces -->
+  <section>
+    <h2>Feature-nimiavaruudet</h2>
+    <p>Duaalinen nimiavaruus mahdollistaa A/B-vertailun: kumpi ennustaa paremmin seuraavan päivän suorituskykyä?</p>
+    <div class="ns-grid">
+      <div class="ns-card ns-oura">
+        <div class="ns-title">oura_* — raaka API-data</div>
+        <code>oura_hrv_avg</code>
+        <code>oura_rhr</code>
+        <code>oura_sleep_score</code>
+        <code>oura_readiness_score</code>
+        <code>oura_total_sleep_h</code>
+        <code>oura_deep_sleep_min</code>
+      </div>
+      <div class="ns-card ns-derived">
+        <div class="ns-title">derived_* — johdetut muuttujat</div>
+        <code>derived_hrv_delta_pct</code>
+        <code>derived_rhr_vs_30d</code>
+        <code>derived_sleep_debt_7d</code>
+        <code>derived_caffeine_lag_h</code>
+        <code>derived_alcohol_units_prev</code>
+        <code>derived_resilience_trend</code>
+      </div>
+    </div>
+    <h3>Avainlaskenta</h3>
+    <div class="schema-block">
+      <pre><span class="comment"># HRV-delta prosenttina 14 päivän mediaanista</span>
+<span class="key">derived_hrv_delta_pct</span> <span class="val">= (nightly_hrv − 14d_median) / 14d_median</span>
+
+<span class="comment"># RHR suhteessa 30 päivän liukuvaan keskiarvoon</span>
+<span class="key">derived_rhr_vs_30d</span>    <span class="val">= (nightly_rhr − 30d_mean) / 30d_mean</span>
+
+<span class="comment"># Trendisignaali vaatii ≥3 peräkkäistä yötä samaan suuntaan</span>
+<span class="key">derived_resilience_trend</span> <span class="val">∈ {EXPANDING, STABLE, DECLINING, INSUFFICIENT}</span></pre>
+    </div>
+  </section>
+
+  <!-- Signal hierarchy -->
+  <section>
+    <h2>Signaalihierarkia</h2>
+    <p>Yksittäinen poikkeava arvo on kohinaa, ei signaali — tämä on N-of-1-metodologian peruspiste.</p>
+    <div class="signal-grid">
+      <div class="signal-card">
+        <div class="signal-label trend">Trendi (14–30 pv)</div>
+        <ul>
+          <li>HRV-baseline 14 pv ikkunasta</li>
+          <li>RHR-trendi 30 pv liukuva</li>
+          <li>Resilience-taso ≥3 yötä</li>
+          <li>Oikeuttaa kapasiteettipäätökset</li>
+        </ul>
+      </div>
+      <div class="signal-card">
+        <div class="signal-label tactical">Taktinen (1–3 yötä)</div>
+        <ul>
+          <li>Uni &lt;6.5h + HRV-lasku ≥10%</li>
+          <li>→ päiväuniehdotus</li>
+          <li>Kofeiini &lt;5h ennen unta</li>
+          <li>→ varoitus seuraavalle yölle</li>
+        </ul>
+      </div>
+      <div class="signal-card">
+        <div class="signal-label insuff">Riittämätön data</div>
+        <ul>
+          <li>&lt;7 yötä dataa</li>
+          <li>Puuttuvat tapahtumat</li>
+          <li>Palauttaa INSUFFICIENT</li>
+          <li>Ei suosituksia</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Record schema -->
+  <section>
+    <h2>Tietuerakenne</h2>
+    <p><code>data/records/YYYY-MM-DD.json</code> — yksi tiedosto per päivä, kaikki vaiheet kirjoittavat samaan.</p>
+    <div class="schema-block">
+      <pre>{
+  <span class="key">"date"</span>: <span class="val">"2026-07-19"</span>,
+  <span class="key">"oura"</span>: {
+    <span class="key">"hrv_avg"</span>: <span class="val">42.3</span>,      <span class="comment">// ms</span>
+    <span class="key">"rhr"</span>: <span class="val">48</span>,              <span class="comment">// bpm</span>
+    <span class="key">"sleep_score"</span>: <span class="val">81</span>,
+    <span class="key">"readiness_score"</span>: <span class="val">77</span>,
+    <span class="key">"total_sleep_h"</span>: <span class="val">7.2</span>
+  },
+  <span class="key">"events"</span>: {
+    <span class="key">"caffeine_last_mg"</span>: <span class="val">100</span>,
+    <span class="key">"caffeine_last_time"</span>: <span class="val">"14:30"</span>,
+    <span class="key">"alcohol_units"</span>: <span class="val">0</span>,
+    <span class="key">"meal_anchor_time"</span>: <span class="val">"12:00"</span>
+  },
+  <span class="key">"derived"</span>: {
+    <span class="key">"hrv_delta_pct"</span>: <span class="val">+3.2</span>,
+    <span class="key">"rhr_vs_30d"</span>: <span class="val">-1.8</span>,
+    <span class="key">"resilience_trend"</span>: <span class="val">"EXPANDING"</span>
+  },
+  <span class="key">"classification"</span>: {
+    <span class="key">"load_class"</span>: <span class="val">"HIGH_LOAD"</span>,
+    <span class="key">"state"</span>: <span class="val">"Expansion"</span>,
+    <span class="key">"recommendation"</span>: <span class="val">"Kapasiteetti korkea. Sovelias intensiiviselle työlle."</span>
+  }
+}</pre>
+    </div>
+  </section>
+
+  <footer>
+    <span>weekly-cycle-oura-skill · <a href="https://github.com/jaakkokorhonen/weekly-cycle-oura-skill" target="_blank" rel="noopener">GitHub</a></span>
+    <span>v0.1 MVP · 2026</span>
+  </footer>
+</div>
+
+<script>
+  (function(){
+    const html=document.documentElement;
+    const btn=document.getElementById('theme-btn');
+    let dark=true;
+    html.setAttribute('data-theme','dark');
+    function render(){
+      if(dark){
+        btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg> Vaalea tila';
+      } else {
+        btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg> Tumma tila';
+      }
+    }
+    window.toggleTheme=function(){
+      dark=!dark;
+      html.setAttribute('data-theme',dark?'dark':'light');
+      render();
+    };
+    render();
+  })();
+</script>
+</body>
+</html>
