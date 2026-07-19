@@ -10,7 +10,7 @@ Tausta-ajattelu perustuu kolmeen havaintoon, jotka on käyty läpi tämän proje
 2. Historiallinen näyttö (Ekirch, esiteollinen "first sleep / second sleep" -malli) osoittaa, että kahden unijakson rakenne on ollut ihmislajille pitkään normaali, mutta tästä ei seuraa suoraan, että se olisi nykyaikaisessa ympäristössä ylivertainen — tätä ei ole kontrolloidusti testattu [PMC4763365].
 3. Kofeiinin, alkoholin, ruokailun ja viikonlopun rytmin vaikutukset uneen ja palautumiseen ovat annos- ja ajoitusriippuvaisia, ja niiden hyöty/haitta-suhde vaihtelee sen mukaan, mikä on kunkin hetken tavoite (työ, kokeilu, palautuminen) [web:52][web:186][web:160].
 
-Skillin tarkoitus on tarjota työkalu, jolla näitä ilmiöitä voidaan seurata yksilön omalla datalla (Oura Ring: uni, valmiustila, aktiivisuus, HRV) ja testata systemaattisesti, mikä rytmi toimii juuri tälle käyttäjälle — sen sijaan että nojattaisiin yleisiin, kontekstista irrotettuihin unihygieniasuosituksiin.
+Skillin tarkoitus on tarjota työkalu, jolla näitä ilmiöitä voidaan seurata yksilön omalla datalla (Oura Ring: uni, valmiustila, aktiivisuus, HRV) ja testata systemaattisesti, mikä rytmi toimii juuri tälle käyttäjälle — sen sijaan että nojattaisiin yleisiin, mahdollisesti ideologisiin, kontekstista irrotettuihin unihygieniasuosituksiin.
 
 ## Tieteellinen pohja
 
