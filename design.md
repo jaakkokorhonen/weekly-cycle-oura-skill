@@ -221,3 +221,102 @@ Käyttäjä testaa, toimiiko päivällinen viikolla tai myöhempi illallinen vii
 Skill toimii, koska se ei yritä arvata yhtä universaalia sääntöä, vaan rakentaa yksilöllisen mallin toistuvista sykleistä ja testaa niitä järjestelmällisesti. Oura tarjoaa tähän hyvän fysiologisen mittauspohjan, mutta vasta viikkotason sykliikka, ajallinen rikastus ja N-of-1-kokeilu tekevät datasta toimintakykyistä tietoa.
 
 Tieteellinen logiikka on yhdistelmä mittausta, hypoteesinmuodostusta, yhden muuttujan kokeita ja viikkotason tulkintaa. Tämä on vahvempi lähestymistapa kuin joko puhdas uniscore-seuranta tai pelkkä intuitiivinen itseseuranta, koska se yhdistää objektiivisen datan ja eksplisiittisen kokeellisen metodin samaan järjestelmään.
+
+---
+
+## MVP-arkkitehtuuri
+
+> Tämä osio kuvaa toteutettavan MVP:n moduulit, riippuvuudet, stub-strategian ja rajapintojen työnjaon. Konseptuaaliset kuvaukset ylempänä pysyvät muuttumattomina — ne kuvaavat järjestelmän tavoitetilaa.
+
+### MVP:n menestyskriteeri
+
+Käyttäjä läpäisee viikon: päivittäinen pipeline ajaa, tapahtumat kirjautuvat, ja järjestelmä tuottaa luokituksen + suosituksen 6 use caselle (kofeiini-ikkuna, alkoholi, päiväuni, työjakso, viikonloppusykli, ateria-ankkuri). A/B-analyysi ei kuulu MVP:hen — se edellyttää vähintään kahden täyden jakson dataa.
+
+### §1 Moduulirakenne
+
+```
+src/
+  oura_client.py          # Oura API v2 -asiakas, I/O-kerros
+  event_manager.py        # manuaalisten tapahtumien luku/kirjoitus
+  pipeline.py             # orkestroija: fetch → enrich → classify → recommend → write
+  rule_engine.py          # päiväluokittelu + tilakone + taktiset triggerit
+  recommendation_engine.py # suositustekstien generointi
+  cli.py                  # komentoriviliittymä (GitHub Actions + manuaali)
+  mcp_server.py           # MCP-rajapinta (AI-assistentin Oura-datahaku)
+```
+
+`experiment_manager.py` **ei kuulu MVP:hen** — lisätään kun ensimmäinen täysi viikko dataa on kerätty. Ks. tiketti [#31](https://github.com/jaakkokorhonen/weekly-cycle-oura-skill/issues/31).
+
+### §2 Riippuvuusketju
+
+```
+oura_client.py
+  └─► pipeline.py
+        ├─► event_manager.py
+        ├─► rule_engine.py
+        │     └─► recommendation_engine.py
+        └─► [experiment_manager.py]  ← post-MVP
+
+pipeline.py
+  ├─► cli.py          (GitHub Actions cron + manuaalinen log-event)
+  └─► mcp_server.py   (AI-assistentin get_status / run_pipeline)
+```
+
+`oura_client.py` on ainoa todellinen blokkeri koko pinolle.
+
+### §3 CLI vs. MCP — rajapintojen työnjako
+
+Molemmat rajapinnat tarvitaan MVP:ssä — ne eivät ole vaihtoehtoja vaan palvelevat eri käyttötarkoituksia:
+
+| Rajapinta | Tarkoitus | Ajoitus |
+|---|---|---|
+| `cli.py` | GitHub Actions cron-ajo (`run`) + manuaalinen tapahtumien kirjaus (`log-event`) | Päivittäinen automaatio + ad hoc |
+| `mcp_server.py` | AI-assistentin Oura-datahaku (`get_status`, `run_pipeline`, `get_daily_report`) | Interaktiivinen käyttö |
+
+Molemmat delegoivat bisneslogiikan `pipeline.py`:lle — ei duplikaatiota.
+
+**MVP-komennot CLI:ssä** (`analyze-experiment` ei kuulu MVP:hen):
+
+```bash
+python cli.py run [--date YYYY-MM-DD]  # pipeline + suositus
+python cli.py log-event --type caffeine/alcohol/meal/nap ...
+python cli.py show [--date YYYY-MM-DD]
+python cli.py status
+```
+
+**MVP-työkalut MCP:ssä** (`analyze_experiment` ei kuulu MVP:hen):
+
+```python
+run_pipeline(date)      # hae + laske + palauta suositus
+log_event(type, ...)    # kirjaa tapahtuma
+get_daily_report(date)  # classification + load_state + recommendation
+get_status()            # viimeisin tietue
+```
+
+### §4 Rikastusfunktioiden stub-strategia
+
+Pipeline.py:n rikastusfunktiot toteutetaan iteratiivisesti. Stubbatut funktiot eivät kaada pipelinea — ne palauttavat vakioarvon ja loggaavat varoituksen.
+
+| Funktio | MVP-tila | Paluuarvo stub:issa | Avaa kun |
+|---|---|---|---|
+| `compute_caffeine_window()` | ✅ Toteutetaan täysin | — | — |
+| `compute_alcohol_window()` | ✅ Toteutetaan täysin | — | — |
+| `compute_recovery_cost()` | ✅ Toteutetaan täysin | — | — |
+| `segment_sleep_night()` | 🔲 Stubattu | `{"sleep_mode": "monophasic"}` | Use case 3 (päiväuni/nap) |
+| `detect_work_block()` | 🔲 Stubattu | `None` | Use case 4 (työjakso) |
+| `detect_main_meal()` | 🔲 Stubattu | `None` | Use case 6 (ateria-ankkuri) |
+
+Rule engine saa stub-arvot feature-dictissä — logiikka ei kaadu, se jättää kyseisen piirteen neutral-tilaan.
+
+### §5 Post-MVP-raja
+
+Seuraavat ominaisuudet on tietoisesti jätetty MVP:n ulkopuolelle:
+
+- `experiment_manager.py` — N-of-1 A/B-analyysi (tiketti [#31](https://github.com/jaakkokorhonen/weekly-cycle-oura-skill/issues/31))
+- `analyze-experiment` CLI-komento
+- `analyze_experiment()` MCP-työkalu
+- `segment_sleep_night()` täysi toteutus (biphasic-tunnistus)
+- `detect_work_block()` täysi toteutus
+- `detect_main_meal()` täysi toteutus
+- `compute_capacity_signal()` (viikkotason kapasiteettisignaali)
+- `score_experiment_outcome()` (kokeen tulospisteytys)
