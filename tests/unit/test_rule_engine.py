@@ -5,41 +5,59 @@ from src.features import DayRecord
 
 @pytest.fixture
 def rule_engine():
+    """Config-rakenne peilaa config.yaml.example:ia — kynnykset config["thresholds"]-aliavaimissa."""
     config = {
-        "high_load_kcal_hard": 1000,
-        "high_load_kcal_soft": 800,
-        "high_load_hrv_delta": -0.15,
-        "integration_min_conditions": 3,
-        "incomplete_reset_days": 3,
+        "thresholds": {
+            "high_load_kcal_hard": 1000,
+            "high_load_kcal_soft": 800,
+            "high_load_hrv_delta": -0.15,
+            "integration_min_conditions": 3,
+            "incomplete_reset_days": 3,
+            "nap_sleep_threshold_h": 6.5,
+            "nap_hrv_delta": -0.10,
+            "low_output_hrv_delta": -0.10,
+            "low_output_rhr_elevated_delta": 0.05,
+        }
     }
     return RuleEngine(config=config)
 
 
 def test_classify_day_high_load_hard(rule_engine):
     """Kalorit > hard threshold — HIGH_LOAD_DAY."""
-    features = {"active_calories": 1100, "hrv_delta_pct": -0.05}
+    features = {"derived_active_kcal": 1100, "derived_hrv_delta_pct": -0.05}
     assert rule_engine.classify_day(features) == "HIGH_LOAD_DAY"
 
 
 def test_classify_day_high_load_hybrid(rule_engine):
     """Hybriditapaus: kalorit 800-1000 + HRV suppressed — HIGH_LOAD_DAY."""
-    features = {"active_calories": 850, "hrv_delta_pct": -0.18}
+    features = {"derived_active_kcal": 850, "derived_hrv_delta_pct": -0.18}
     assert rule_engine.classify_day(features) == "HIGH_LOAD_DAY"
 
 
 def test_classify_day_integration(rule_engine):
-    """Matala aktiivisuus + 3/4 palautumisehtoa — INTEGRATION_DAY."""
+    """Matala aktiivisuus + kaikki palautumisehdot — INTEGRATION_DAY."""
     features = {
-        "active_calories": 300,
-        "hrv_delta_pct": 0.05,
-        "deep_sleep_vs_30d_delta": 100,
-        "rhr_delta_pct": -0.05,
+        "derived_active_kcal": 300,
+        "derived_hrv_delta_pct": 0.05,       # >= 0
+        "derived_deep_sleep_vs_30d": 100,    # > 0
+        "derived_rhr_vs_30d": -0.05,         # < 0
     }
     assert rule_engine.classify_day(features) == "INTEGRATION_DAY"
 
 
+def test_classify_day_integration_negative_hrv_is_not_integration(rule_engine):
+    """Negatiivitesti: hrv_delta_pct < 0 ei saa tuottaa INTEGRATION_DAY:ta (#29 AC)."""
+    features = {
+        "derived_active_kcal": 300,
+        "derived_hrv_delta_pct": -0.05,      # alle baselinen — ei integration
+        "derived_deep_sleep_vs_30d": 100,
+        "derived_rhr_vs_30d": -0.05,
+    }
+    assert rule_engine.classify_day(features) != "INTEGRATION_DAY"
+
+
 def test_classify_day_baseline(rule_engine):
-    features = {"active_calories": 400, "hrv_delta_pct": 0.02}
+    features = {"derived_active_kcal": 400, "derived_hrv_delta_pct": 0.02}
     assert rule_engine.classify_day(features) == "BASELINE_DAY"
 
 
@@ -68,8 +86,19 @@ def test_get_state_reset_confirmed(rule_engine):
     assert rule_engine.get_state(history) == "Reset Confirmed"
 
 
+def test_get_state_incomplete_reset_requires_3_days(rule_engine):
+    """Insufficient evidence: 2 peräkkäistä HRV-suppressiota ei riitä — ei Incomplete Reset (#29 AC)."""
+    history = [
+        DayRecord(date="2026-07-16", classification="HIGH_LOAD_DAY",
+                  hrv_delta_pct=-0.18, hrv_value=29, hrv_baseline_14d=35),
+        DayRecord(date="2026-07-17", classification="BASELINE_DAY",
+                  hrv_delta_pct=-0.16, hrv_value=30, hrv_baseline_14d=35),
+    ]
+    assert rule_engine.get_state(history) != "Incomplete Reset"
+
+
 def test_get_state_incomplete_reset(rule_engine):
-    """3+ peräkkäistä HRV-suppressiota — Incomplete Reset."""
+    """3+ peräkkäistä HRV-suppressiota — Incomplete Reset (#29 AC)."""
     history = [
         DayRecord(date="2026-07-15", classification="HIGH_LOAD_DAY",
                   hrv_delta_pct=-0.18, hrv_value=29, hrv_baseline_14d=35),
@@ -79,6 +108,22 @@ def test_get_state_incomplete_reset(rule_engine):
                   hrv_delta_pct=-0.20, hrv_value=28, hrv_baseline_14d=35),
     ]
     assert rule_engine.get_state(history) == "Incomplete Reset"
+
+
+def test_get_state_partial_baseline_returns_neutral(rule_engine):
+    """partial_baseline: true — get_state palauttaa Neutral, ei Incomplete Reset (#29 AC)."""
+    history = [
+        DayRecord(date="2026-07-15", classification="HIGH_LOAD_DAY",
+                  hrv_delta_pct=-0.18, hrv_value=29, hrv_baseline_14d=35,
+                  partial_baseline=True),
+        DayRecord(date="2026-07-16", classification="BASELINE_DAY",
+                  hrv_delta_pct=-0.16, hrv_value=30, hrv_baseline_14d=35,
+                  partial_baseline=True),
+        DayRecord(date="2026-07-17", classification="BASELINE_DAY",
+                  hrv_delta_pct=-0.20, hrv_value=28, hrv_baseline_14d=35,
+                  partial_baseline=True),
+    ]
+    assert rule_engine.get_state(history) == "Neutral"
 
 
 def test_get_state_neutral_no_high_load(rule_engine):
