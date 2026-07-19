@@ -7,7 +7,7 @@ Tämä dokumentti kuvaa, mitkä Oura API v2 -endpointit ja kentät valittiin MVP
 | Endpoint | Käyttö |
 |---|---|
 | `/v2/usercollection/sleep` | Uni, HRV, RHR, univaiheet |
-| `/v2/usercollection/daily_readiness` | Readiness-score, HRV-yhteenveto |
+| `/v2/usercollection/daily_readiness` | Haetaan, mutta kenttiä ei käytetä luokitteluun |
 | `/v2/usercollection/daily_activity` | Aktiivisuuskalorerit (active_calories) |
 | `/v2/usercollection/heartrate` | Sykeaikasarja nap-tunnistukseen (`source == 'rest'`) |
 
@@ -72,11 +72,16 @@ Ouran tagit ovat epäluotettavia (käyttäjän kirjaus vaihtelee). Kaikki manuaa
 }
 ```
 
-**Käytetyt kentät MVP:ssä:**
-- `score` → `oura.readiness_score` (tallennetaan, ei käytetä luokitteluun)
-- `contributors.hrv_balance` — HRV-trenditarkistus tukiinformaationa
+**Käytetyt kentät MVP:ssä:** —
 
-**Tärkeä päätös:** `readiness_score`-arvoa **ei käytetä** `rule_engine.py`:n luokitteluehtoihin. Luokittelu perustuu `derived`-nimiavaruuteen (HRV-delta, kcal, sleep-trendit). `readiness_score` tallennetaan `oura`-nimiavaruuteen läpinäkyvyyttä varten.
+> **MVP-päätös (2026-07-19):** `daily_readiness`-endpoint haetaan ja tallennetaan `raw`-nimiavaruuteen, mutta **yhtään kenttää ei käytetä luokitteluun eikä rikastukseen MVP:ssä.**
+>
+> - `score` (`oura.readiness_score`) — poistettu MVP-scopesta. Tallennetaan `raw`:iin läpinäkyvyyttä varten, mutta `rule_engine.py` ei lue sitä.
+> - `contributors.hrv_balance` — poistettu MVP-scopesta. HRV-trendisignaali lasketaan `sleep.average_hrv`-pohjaisesta 14d-mediaanista (`derived_hrv_delta_pct`), ei Ouran omasta `hrv_balance`-luvusta.
+>
+> **Rationale:** MVP:n luokittelu perustuu yksinomaan `derived.*`-nimiavaruuteen. Kaksi lähdettä samalle signaalille (Ouran `hrv_balance` ja oma `derived_hrv_delta_pct`) aiheuttaisivat ristiriidan säännöissä ja monimutkaistuisivat testit. Post-MVP:ssä `hrv_balance_status` voidaan lisätä `rule_engine`:en lisäehtona tai `recommendation_engine`:en selitystekstiin.
+
+**Ei käytetä MVP:ssä:** `score`, `hrv_balance_status`, `contributors.*`
 
 ### `/v2/usercollection/daily_activity`
 
