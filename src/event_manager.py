@@ -21,6 +21,18 @@ class EventManager:
         if event_type not in self.VALID_TYPES:
             raise ValueError(f"Invalid event type: {event_type}. Must be one of {self.VALID_TYPES}")
 
+        # Caffeine and alcohol require 'amount' and it must be > 0.0
+        if event_type in ("caffeine", "alcohol"):
+            if "amount" not in event:
+                raise ValueError(f"'{event_type}' events require an 'amount' field.")
+            amount = event.get("amount")
+            try:
+                amount_val = float(amount)
+                if amount_val <= 0.0:
+                    raise ValueError()
+            except (TypeError, ValueError):
+                raise ValueError(f"'{event_type}' amount must be greater than 0.")
+
         if event_type == "nap" and "duration_min" not in event:
             raise ValueError("Nap events require a 'duration_min' field.")
 
@@ -40,14 +52,29 @@ class EventManager:
         with open(self.filepath, "a", encoding="utf-8") as f:
             f.write(json.dumps(event, ensure_ascii=False) + "\n")
 
-    def get_events_range(self, start: datetime.datetime, end: datetime.datetime) -> list[dict]:
-        """Returns all events between start and end (inclusive)."""
+    def get_events_range(self, start_date: str, end_date: str) -> dict[str, list[dict]]:
+        """Returns all events between start_date and end_date (calendar date strings) grouped by day.
+        
+        Returns:
+            dict[date_str, list[dict]]
+        """
         self._ensure_file()
         
-        if start.tzinfo is None or end.tzinfo is None:
-            raise ValueError("Start and end datetimes must be timezone-aware.")
+        try:
+            start_dt = datetime.date.fromisoformat(start_date)
+            end_dt = datetime.date.fromisoformat(end_date)
+            if start_dt > end_dt:
+                raise ValueError("start_date must be before or equal to end_date")
+        except ValueError as e:
+            raise ValueError(f"Invalid date format: {e}")
 
-        results = []
+        # Initialize results dictionary for every day in the range
+        results = {}
+        curr = start_dt
+        while curr <= end_dt:
+            results[curr.isoformat()] = []
+            curr += datetime.timedelta(days=1)
+
         with open(self.filepath, "r", encoding="utf-8") as f:
             for line in f:
                 if not line.strip():
@@ -55,8 +82,9 @@ class EventManager:
                 try:
                     event = json.loads(line)
                     evt_dt = datetime.datetime.fromisoformat(event["timestamp"])
-                    if start <= evt_dt <= end:
-                        results.append(event)
+                    evt_date_str = evt_dt.date().isoformat()
+                    if evt_date_str in results:
+                        results[evt_date_str].append(event)
                 except Exception:
                     continue
         return results
@@ -78,7 +106,6 @@ class EventManager:
                 try:
                     event = json.loads(line)
                     evt_dt = datetime.datetime.fromisoformat(event["timestamp"])
-                    # Convert to local date based on offset
                     evt_date = evt_dt.date()
                     if evt_date == target_date:
                         results.append(event)

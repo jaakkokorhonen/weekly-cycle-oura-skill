@@ -60,8 +60,8 @@ class OuraClient:
         Returns:
             dict[date_str, {
                 "sleep": list,
-                "readiness": dict | None,
-                "activity": dict | None,
+                "daily_readiness": dict | None,
+                "daily_activity": dict | None,
                 "heartrate": list
             }]
         """
@@ -89,8 +89,8 @@ class OuraClient:
             day_str = curr.isoformat()
             records[day_str] = {
                 "sleep": [],
-                "readiness": None,
-                "activity": None,
+                "daily_readiness": None,
+                "daily_activity": None,
                 "heartrate": []
             }
             curr += datetime.timedelta(days=1)
@@ -101,17 +101,17 @@ class OuraClient:
             if day in records:
                 records[day]["sleep"].append(s)
 
-        # Distribute readiness (typically one per day)
+        # Distribute daily_readiness (typically one per day)
         for r in readiness_data:
             day = r.get("day")
             if day in records:
-                records[day]["readiness"] = r
+                records[day]["daily_readiness"] = r
 
-        # Distribute activity (typically one per day)
+        # Distribute daily_activity (typically one per day)
         for a in activity_data:
             day = a.get("day")
             if day in records:
-                records[day]["activity"] = a
+                records[day]["daily_activity"] = a
 
         # Distribute heartrate (many readings per day, we group by local calendar date)
         for hr in heartrate_data:
