@@ -1,6 +1,8 @@
 import json
 import datetime
+import os
 from pathlib import Path
+from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
 from src.oura_client import OuraClient
@@ -9,13 +11,21 @@ from src.event_manager import EventManager
 from src.cli import load_config
 
 # Initialize FastMCP Server
+load_dotenv()
 mcp = FastMCP("Weekly Cycle Oura Skill")
+
+def get_token(config) -> str:
+    token = config.get("oura_token")
+    if not token or token == "YOUR_OURA_TOKEN_HERE":
+        token = os.environ.get("OURA_TOKEN")
+    return token or ""
 
 @mcp.tool()
 def get_status(date: str = "") -> dict:
     """Gets the latest calculated physiological status, classification, and recommendations."""
     config = load_config()
-    token = config.get("oura_token", "")
+    token = get_token(config)
+
     records_dir = Path(config.get("records_dir", "data/records"))
     raw_dir = Path(config.get("raw_dir", "data/raw"))
     events_file = Path(config.get("events_file", "data/events.jsonl"))
@@ -44,7 +54,8 @@ def get_status(date: str = "") -> dict:
 def get_daily_report(date: str = "") -> dict:
     """Retrieves a specific calendar day report by date (YYYY-MM-DD) without triggering a live run."""
     config = load_config()
-    token = config.get("oura_token", "")
+    token = get_token(config)
+
     records_dir = Path(config.get("records_dir", "data/records"))
     raw_dir = Path(config.get("raw_dir", "data/raw"))
     events_file = Path(config.get("events_file", "data/events.jsonl"))
@@ -100,7 +111,9 @@ def log_event(
 def run_pipeline(date: str = "") -> dict:
     """Runs the full fetch, processing, and enrichment pipeline for a calendar date (YYYY-MM-DD)."""
     config = load_config()
-    token = config.get("oura_token", "")
+    token = get_token(config)
+
+
     records_dir = Path(config.get("records_dir", "data/records"))
     raw_dir = Path(config.get("raw_dir", "data/raw"))
     events_file = Path(config.get("events_file", "data/events.jsonl"))

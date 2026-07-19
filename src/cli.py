@@ -2,7 +2,9 @@ import click
 import json
 import datetime
 import yaml
+import os
 from pathlib import Path
+from dotenv import load_dotenv
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
@@ -11,6 +13,7 @@ from src.oura_client import OuraClient
 from src.pipeline import Pipeline
 from src.event_manager import EventManager
 
+load_dotenv()
 console = Console()
 
 def load_config() -> dict:
@@ -65,8 +68,13 @@ def run(date, start, end):
     config = load_config()
     token = config.get("oura_token")
     if not token or token == "YOUR_OURA_TOKEN_HERE":
-        console.print("[bold red]Error:[/] Oura token is missing in config.yaml. Please add it first.")
+        token = os.environ.get("OURA_TOKEN")
+        
+    if not token or token == "YOUR_OURA_TOKEN_HERE":
+        console.print("[bold red]Error:[/] Oura token is missing in config.yaml or .env. Please configure OURA_TOKEN.")
         return
+
+
 
     # Setup pipeline dirs
     records_dir = Path(config.get("records_dir", "data/records"))
