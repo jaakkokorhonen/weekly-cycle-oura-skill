@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environment (uv)
+.venv/
+venv/
+.uv/
+
+# Config — sisältää oikean tokenin
+config.yaml
+
+# Data — käyttäjän paikallinen data
+data/events.jsonl
+data/raw/
+data/records/
+data/runs.jsonl
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Pytest
+.pytest_cache/
+
+# Ruff
+.ruff_cache/
+
+# Coverage
+.coverage
+htmlcov/

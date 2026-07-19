@@ -1,0 +1,27 @@
+# config.yaml.example — kopioi config.yaml:ksi ja täytä oura_token
+# config.yaml on .gitignore:ssa — tätä tiedostoa ei.
+
+oura_token: "YOUR_OURA_TOKEN_HERE"
+
+data_dir: "data"
+records_dir: "data/records"
+raw_dir: "data/raw"
+events_file: "data/events.jsonl"
+timezone: "Europe/Helsinki"  # IANA timezone — event_manager.py käyttää paikallisen päivän laskentaan
+
+baseline:
+  hrv_window_days: 14
+  rhr_window_days: 30
+  deep_sleep_window_days: 30
+  min_data_points: 5  # alle tämän: partial_baseline: true
+
+thresholds:
+  high_load_kcal_hard: 1000
+  high_load_kcal_soft: 800
+  high_load_hrv_delta: -0.15
+  integration_min_conditions: 3
+  incomplete_reset_days: 3
+  nap_sleep_threshold_h: 6.5
+  nap_hrv_delta: -0.10
+  low_output_hrv_delta: -0.10
+  low_output_rhr_elevated_delta: 0.05
