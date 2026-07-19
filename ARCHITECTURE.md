@@ -182,10 +182,7 @@ Yhdistää kaikki moduulit ja kirjoittaa `data/records/YYYY-MM-DD.json`.
     "recovery_cost": 0.12,
     "sleep_mode": "monophasic"
   },
-  "oura": {
-    "readiness_score": 78,
-    "recovery_index": 94
-  },
+  "oura": {},
   "events": [],
   "classification": "BASELINE_DAY",
   "load_state": "Neutral",
@@ -196,7 +193,7 @@ Yhdistää kaikki moduulit ja kirjoittaa `data/records/YYYY-MM-DD.json`.
 }
 ```
 
-**Huomio:** `recovery_index` luetaan `daily_readiness["contributors"]["recovery_index"]`-polusta — ei ylätason kentästä.
+> **MVP-huomio:** `oura`-lohko on MVP:ssä tyhjä `{}`. `readiness_score` ja `recovery_index` lisätään post-MVP:ssä (#28).
 
 **Ensikäynnistys:** Pipeline hakee automaattisesti 30 päivää historiadataa baseline-bootstrappingia varten.
 
@@ -284,7 +281,8 @@ weekly-cycle-oura-skill/
 │   │   ├── test_pipeline.py
 │   │   ├── test_rule_engine.py
 │   │   ├── test_features.py
-│   │   └── test_rec_engine.py
+│   │   ├── test_rec_engine.py
+│   │   └── test_mcp_server.py
 │   └── post_mvp/
 │       └── test_cli.py
 └── data/
